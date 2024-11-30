@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import Memory from "./Memory";
+import GyroFocus from "./GyroFocus";
 
 const Menu = () => {
   const [activeComponent, setActiveComponent] = useState("menu");
@@ -10,14 +11,18 @@ const Menu = () => {
   const BUTTONS = [
     { id: 1, color: "red", label: "Memory Game" },
     { id: 2, color: "blue", label: "Coming soon" },
-    { id: 3, color: "green", label: "Coming soon" },
+    { id: 3, color: "green", label: "GyroFocus" },
   ];
 
   const handleButtonClick = (buttonId) => {
     if (buttonId === 1) {
       setActiveComponent("memory");
-    } else {
+    } 
+    else if (buttonId === 2) {
       console.log(`Component ${buttonId} selected - not yet implemented`);
+    }
+    else if (buttonId === 3) {
+      setActiveComponent("gyrofocus");
     }
   };
 
@@ -36,6 +41,9 @@ const Menu = () => {
 
   if (activeComponent === "memory") {
     return <Memory setActiveComponent={setActiveComponent} />;
+  }
+  if (activeComponent === "gyrofocus") {
+    return <GyroFocus setActiveComponent={setActiveComponent} />;
   }
 
   return (

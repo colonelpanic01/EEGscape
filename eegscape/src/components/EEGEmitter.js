@@ -14,7 +14,7 @@ function EEGEmitter() {
   const pitchOffset = pitchDegrees - defaultPosition?.pitch || 0;
 
   useEffect(() => {
-    console.log(pitchDegrees, yawDegrees, defaultPosition, yawOffset, pitchOffset);
+    //console.log(pitchDegrees, yawDegrees, defaultPosition, yawOffset, pitchOffset);
 
     // Avoid dispatching multiple actions simultaneously
     if (dispatchState) return; // Prevent if an action is already in progress
@@ -47,6 +47,10 @@ function EEGEmitter() {
       setDispatchState(null);
     }
   }, [pitchOffset, yawOffset, dispatchState]);
+
+  useEffect(() => {
+    dispatchEeg.tilt(yawOffset);
+  }, [yawOffset])
 
   return null; // we're not rendering anything
 }
