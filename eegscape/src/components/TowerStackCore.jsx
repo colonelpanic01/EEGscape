@@ -25,11 +25,11 @@ const TowerStackCore = () => {
   const [blocks, setBlocks] = useState([{ width: DEFAULT_WIDTH, position: 0 }]);
   const [highScore, setHighScore] = useLocalStorage(
     "eegscape:tower-stack-high-score",
-    0
+    1
   );
   const [currentBlock, setCurrentBlock] = useState(DEFAULT_CURRENT_BLOCK);
   const [fallingBlock, setFallingBlock] = useState(DEFAULT_FALLING_BLOCK);
-  const [stackHeight, setStackHeight] = useState(0);
+  const [stackHeight, setStackHeight] = useState(1);
   const [heightOffset, setHeightOffset] = useState(0);
   const [speedMultiplier, setSpeedMultiplier] = useState(
     INITIAL_SPEED_MULTIPLIER
@@ -228,10 +228,10 @@ const TowerStackCore = () => {
       </div>
       <div className="self-center flex gap-4 p-2">
         <p>
-          Tower height: {stackHeight + 1} block{stackHeight + 1 > 1 ? "s" : ""}
+          Tower height: {stackHeight} block{stackHeight > 1 ? "s" : ""}
         </p>
         <p>
-          Tallest tower: {stackHeight + 1} block{stackHeight + 1 > 1 ? "s" : ""}
+          Tallest tower: {highScore} block{highScore > 1 ? "s" : ""}
         </p>
       </div>
     </div>
