@@ -3,55 +3,39 @@ import useEeg from "../hooks/useEeg";
 import Memory from './Memory';
 
 const Menu = () => {
-
   const [activeComponent, setActiveComponent] = useState('menu');
-  const { concentration, nod } = useEeg();
+  const { nod } = useEeg();
+  const [count, setCount] = useState(2); // Start with the first button selected
 
   const BUTTONS = [
-    {
-      id: 1,
-      color: 'red',
-      label: "Memory Game"
-    },
-    {
-      id: 2,
-      color: "blue",
-      label: "Coming soon"
-    },
-    {
-      id: 3,
-      color: "green",
-      label: "Coming soon"
-    }
-  ]
+    { id: 1, color: 'red', label: "Memory Game" },
+    { id: 2, color: 'blue', label: "Coming soon" },
+    { id: 3, color: 'green', label: "Coming soon" }
+  ];
 
   const handleButtonClick = (buttonId) => {
-    if (buttonId == 1) {
-      setActiveComponent('memory')
+    if (buttonId === 1) {
+      setActiveComponent('memory');
+    } else {
+      console.log(`Component ${buttonId} selected - not yet implemented`);
     }
-    else if (buttonId == 2) {
-      console.log('Component 2 selected - not yet implemented');
-    }
-    else if (buttonId == 3) {
-      console.log('Component 3 selected - not yet implemented');
-    }
-  }
+  };
 
-  // EEG nod handlers
+  // Handle nods for navigation and selection
   nod.useNodLeft(() => {
-    handleButtonClick(1); // Left button (red)
-  });
-
-  nod.useNodBottom(() => {
-    handleButtonClick(2); // Middle button (blue)
+    setCount((prev) => (prev > 1 ? prev - 1 : prev)); // Wrap around to last button
   });
 
   nod.useNodRight(() => {
-    handleButtonClick(3); // Right button (green)
+    setCount((prev) => (prev < 3 ? prev + 1 : prev)); // Wrap around to first button
+  });
+
+  nod.useNodBottom(() => {
+    handleButtonClick(count); // Trigger the selected button
   });
 
   if (activeComponent === 'memory') {
-    return <Memory />;
+    return <Memory setActiveComponent={setActiveComponent} />;
   }
 
   return (
@@ -66,9 +50,12 @@ const Menu = () => {
             key={id}
             id={`button-${id}`}
             onClick={() => handleButtonClick(id)}
-            className={`bg-${color}-500 text-white py-4 px-6 rounded 
-              hover:bg-${color}-600 transition-colors duration-200
-              text-lg font-semibold min-w-[160px]`}
+            className={`
+              py-4 px-6 rounded text-lg font-semibold min-w-[160px] 
+              transition-colors duration-200 
+              ${count === id ? `bg-${color}-500 ring-4 ring-offset-2 ring-black` : `bg-${color}-500`}
+              text-white
+            `}
           >
             {label}
           </button>
@@ -76,10 +63,10 @@ const Menu = () => {
       </div>
       <div className="text-center text-gray-600">
         <p>Use head movements to select a game:</p>
-        <p>Nod Left: Memory Game | Nod Down: Game 2 | Nod Right: Game 3</p>
+        <p>Nod Left: Move selection left | Nod Right: Move selection right | Nod Down: Confirm</p>
       </div>
     </div>
   );
-}
+};
 
 export default Menu;
