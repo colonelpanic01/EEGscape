@@ -1,7 +1,7 @@
 import EEG_EVENT_CODES from "../const/eeg";
 import useEventSubscriber from "./useEventSubscriber";
 
-function useEeg() {
+function useReceiveEeg() {
   const concentration = {
     useFocus: (handler) => useEventSubscriber(EEG_EVENT_CODES.focus, handler),
     useRelax: (handler) => useEventSubscriber(EEG_EVENT_CODES.relax, handler),
@@ -16,10 +16,15 @@ function useEeg() {
       useEventSubscriber(EEG_EVENT_CODES.nodRight, handler),
   };
 
+  const tilt = {
+    useTilt: (handler) => useEventSubscriber(EEG_EVENT_CODES.yaw, handler),
+  };
+
   return {
     concentration,
     nod,
+    tilt,
   };
 }
 
-export default useEeg;
+export default useReceiveEeg;

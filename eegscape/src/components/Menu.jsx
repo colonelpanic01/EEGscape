@@ -1,21 +1,21 @@
-import { useState } from 'react';
-import useEeg from "../hooks/useEeg";
-import Memory from './Memory';
+import { useState } from "react";
+import useReceiveEeg from "../hooks/useReceiveEeg";
+import Memory from "./Memory";
 
 const Menu = () => {
-  const [activeComponent, setActiveComponent] = useState('menu');
-  const { nod } = useEeg();
+  const [activeComponent, setActiveComponent] = useState("menu");
+  const { nod } = useReceiveEeg();
   const [count, setCount] = useState(2); // Start with the first button selected
 
   const BUTTONS = [
-    { id: 1, color: 'red', label: "Memory Game" },
-    { id: 2, color: 'blue', label: "Coming soon" },
-    { id: 3, color: 'green', label: "Coming soon" }
+    { id: 1, color: "red", label: "Memory Game" },
+    { id: 2, color: "blue", label: "Coming soon" },
+    { id: 3, color: "green", label: "Coming soon" },
   ];
 
   const handleButtonClick = (buttonId) => {
     if (buttonId === 1) {
-      setActiveComponent('memory');
+      setActiveComponent("memory");
     } else {
       console.log(`Component ${buttonId} selected - not yet implemented`);
     }
@@ -34,7 +34,7 @@ const Menu = () => {
     handleButtonClick(count); // Trigger the selected button
   });
 
-  if (activeComponent === 'memory') {
+  if (activeComponent === "memory") {
     return <Memory setActiveComponent={setActiveComponent} />;
   }
 
@@ -53,7 +53,11 @@ const Menu = () => {
             className={`
               py-4 px-6 rounded text-lg font-semibold min-w-[160px] 
               transition-colors duration-200 
-              ${count === id ? `bg-${color}-500 ring-4 ring-offset-2 ring-black` : `bg-${color}-500`}
+              ${
+                count === id
+                  ? `bg-${color}-500 ring-4 ring-offset-2 ring-black`
+                  : `bg-${color}-500`
+              }
               text-white
             `}
           >
@@ -63,7 +67,10 @@ const Menu = () => {
       </div>
       <div className="text-center text-gray-600">
         <p>Use head movements to select a game:</p>
-        <p>Nod Left: Move selection left | Nod Right: Move selection right | Nod Down: Confirm</p>
+        <p>
+          Nod Left: Move selection left | Nod Right: Move selection right | Nod
+          Down: Confirm
+        </p>
       </div>
     </div>
   );
