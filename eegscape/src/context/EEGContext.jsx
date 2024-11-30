@@ -22,7 +22,7 @@ export const EEGProvider = ({ children }) => {
   });
   const [yawDegrees, setYawDegrees] = useState(0);
   const [pitchDegrees, setPitchDegrees] = useState(0);
-  const [defaultPosition, setDefaultPosition] = useState({ yaw: 0, pitch: 0 });
+  const [defaultPosition, setDefaultPosition] = useState({ yaw: yawDegrees, pitch: pitchDegrees });
 
   const museClientRef = useRef(null);
 

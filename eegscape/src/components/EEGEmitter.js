@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { EEGProvider, useEEG } from '../context/EEGContext';
+import { EEGProvider, useEEG } from "../context/EEGContext";
 import dispatchEeg from "../lib/dispatchEeg";
 
 function EEGEmitter() {
@@ -10,11 +10,21 @@ function EEGEmitter() {
   const [dispatchState, setDispatchState] = useState(null);
 
   // Calculate the offset yaw and pitch degrees based on the default position
-  const yawOffset = yawDegrees - defaultPosition?.yaw || 0;
-  const pitchOffset = pitchDegrees - defaultPosition?.pitch || 0;
+  const yawOffset = parseFloat(
+    (yawDegrees - (defaultPosition?.yaw || 0)).toFixed(2)
+  );
+  const pitchOffset = parseFloat(
+    (pitchDegrees - (defaultPosition?.pitch || 0)).toFixed(2)
+  );
 
   useEffect(() => {
-    //console.log(pitchDegrees, yawDegrees, defaultPosition, yawOffset, pitchOffset);
+    console.log(
+      pitchDegrees,
+      yawDegrees,
+      defaultPosition,
+      yawOffset,
+      pitchOffset
+    );
 
     // Avoid dispatching multiple actions simultaneously
     if (dispatchState) return; // Prevent if an action is already in progress
@@ -50,7 +60,7 @@ function EEGEmitter() {
 
   useEffect(() => {
     dispatchEeg.tilt(yawOffset);
-  }, [yawOffset])
+  }, [yawOffset]);
 
   return null; // we're not rendering anything
 }
