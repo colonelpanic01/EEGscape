@@ -27,7 +27,7 @@ function blockGenerator(
     leftEdge,
     rightEdge,
     width,
-    id
+    id,
   };
 }
 
@@ -100,7 +100,7 @@ function TowerStackCore() {
   function resetBlock() {
     setIsFromLeft((prev) => !prev);
     setCurrentBlockXPercent(defaultBlockXPercent);
-    setScore(prev => prev + 1);
+    setScore((prev) => prev + 1);
   }
 
   function handleDropBlock() {
@@ -167,12 +167,8 @@ function TowerStackCore() {
             width: `${currentBlockWidth}px`,
           }}
         >
-          {[...droppedBlocks, defaultBlockXPercent].map(() => {
-            return (
-              <div key={}>
-
-              </div>
-            )
+          {[...droppedBlocks].map(({ leftEdge, rightEdge, width, id }) => {
+            return <div key={id} className=""></div>;
           })}
         </div>
 
