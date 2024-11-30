@@ -1,5 +1,20 @@
+import { useState } from "react";
+import Welcome from "../components/Welcome";
+import Menu from "../components/Menu";
+
 function Home() {
-  return <div className="font-bold text-red-500 btn btn-primary">Home</div>;
+
+  const [showMenu, setShowMenu] = useState(false);
+
+  const handleContinue = () => {
+    setShowMenu(true);
+  };
+
+  return (
+    <div>
+      {showMenu ? <Menu /> : <Welcome onContinue={handleContinue} />}
+    </div>
+  );
 }
 
 export default Home;
