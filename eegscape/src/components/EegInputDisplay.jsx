@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import useEeg from "../hooks/useEeg";
+import useReceiveEeg from "../hooks/useReceiveEeg";
 import PropTypes from "prop-types";
 
 function EegInputButton(props) {
@@ -34,7 +34,7 @@ EegInputButton.propTypes = {
 };
 
 function EegInputDisplay() {
-  const { concentration, nod } = useEeg();
+  const { concentration, nod } = useReceiveEeg();
 
   return (
     <div className="flex flex-col">

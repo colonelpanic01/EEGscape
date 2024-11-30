@@ -1,11 +1,9 @@
 import { useEEG } from "../context/EEGContext";
-import useEeg from "../hooks/useEeg";
+import useReceiveEeg from "../hooks/useReceiveEeg";
 
 function Welcome({ onContinue }) {
-
-
-  const { nod } = useEeg();
-  const {connectToMuse} = useEEG();
+  const { nod } = useReceiveEeg();
+  const { connectToMuse } = useEEG();
 
   nod.useNodBottom(() => {
     onContinue();
@@ -21,9 +19,7 @@ function Welcome({ onContinue }) {
         <p>This line will have instructions on connecting the headset</p>
       </div>
 
-      <button onClick={connectToMuse}>
-        Connect to Muse
-      </button>
+      <button onClick={connectToMuse}>Connect to Muse</button>
 
       <div>
         <button

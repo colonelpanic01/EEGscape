@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import useEeg from "../hooks/useEeg";
+import useReceiveEeg from "../hooks/useReceiveEeg";
 
 const defaultBlockXPercent = {
   withinCenter: 100,
@@ -63,7 +63,7 @@ function TowerStackCore() {
   const [droppedBlocks, setDroppedBlocks] = useState([]);
   const [isFocus, setIsFocus] = useState(false);
   const [isFromLeft, setIsFromLeft] = useState(true);
-  const { concentration } = useEeg();
+  const { concentration } = useReceiveEeg();
 
   concentration.useFocus(() => {
     setIsFocus(true);

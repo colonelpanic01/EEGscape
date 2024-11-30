@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import useEeg from "../hooks/useEeg";
-
+import useReceiveEeg from "../hooks/useReceiveEeg";
 
 const Memory = ({ setActiveComponent }) => {
   // Game states
@@ -11,7 +10,7 @@ const Memory = ({ setActiveComponent }) => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
-  const { nod } = useEeg();
+  const { nod } = useReceiveEeg();
 
   // Constants
   const BUTTONS = [
@@ -121,7 +120,7 @@ const Memory = ({ setActiveComponent }) => {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
         if (setActiveComponent) {
-          setActiveComponent('menu');
+          setActiveComponent("menu");
         }
       };
       handleMenuReturn();
@@ -150,7 +149,7 @@ const Memory = ({ setActiveComponent }) => {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
         if (setActiveComponent) {
-          setActiveComponent('menu');
+          setActiveComponent("menu");
         }
       };
       handleMenuReturn();
