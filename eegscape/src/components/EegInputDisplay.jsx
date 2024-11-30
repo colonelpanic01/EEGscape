@@ -34,16 +34,25 @@ EegInputButton.propTypes = {
 };
 
 function EegInputDisplay() {
-  const { concentration } = useEeg();
+  const { concentration, nod } = useEeg();
 
   return (
     <div className="flex flex-col">
-      <div>
+      <div className="flex flex-row">
         <EegInputButton eventEmitter={concentration.useFocus}>
           Focus
         </EegInputButton>
         <EegInputButton eventEmitter={concentration.useRelax}>
           Relax
+        </EegInputButton>
+      </div>
+      <div className="flex flex-row">
+        <EegInputButton eventEmitter={nod.useNodLeft}>Nod Left</EegInputButton>
+        <EegInputButton eventEmitter={nod.useNodBottom}>
+          Nod Bottom
+        </EegInputButton>
+        <EegInputButton eventEmitter={nod.useNodRight}>
+          Nod Right
         </EegInputButton>
       </div>
     </div>

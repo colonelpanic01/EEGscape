@@ -11,6 +11,20 @@ const dispatchEeg = {
       window.dispatchEvent(customEvent);
     },
   },
+  nod: {
+    right: () => {
+      const customEvent = new CustomEvent(EEG_EVENT_CODES.nodRight, {});
+      window.dispatchEvent(customEvent);
+    },
+    left: () => {
+      const customEvent = new CustomEvent(EEG_EVENT_CODES.nodLeft, {});
+      window.dispatchEvent(customEvent);
+    },
+    bottom: () => {
+      const customEvent = new CustomEvent(EEG_EVENT_CODES.nodBottom, {});
+      window.dispatchEvent(customEvent);
+    },
+  },
 };
 
 export default dispatchEeg;

@@ -14,6 +14,20 @@ function MockEegEmitter() {
         dispatchEeg.concentration.relax();
         return;
       }
+
+      if (event.key === "a") {
+        dispatchEeg.nod.left();
+        return;
+      }
+      if (event.key === "d") {
+        dispatchEeg.nod.right();
+        return;
+      }
+
+      if (event.key === "s") {
+        dispatchEeg.nod.bottom();
+        return;
+      }
     };
 
     // Attach the event listener once
