@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useEeg from "../hooks/useEeg";
 
-const Memory = () => {
+const Memory = ({ setActiveComponent }) => {
   // Game states
   const [sequence, setSequence] = useState([]);
   const [playerSequence, setPlayerSequence] = useState([]);
@@ -10,7 +10,7 @@ const Memory = () => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
-  const { concentration, nod } = useEeg();
+  const { nod } = useEeg();
 
   // Constants
   const BUTTONS = [
@@ -102,28 +102,62 @@ const Memory = () => {
     ]
   );
 
-  // EEG nod handlers
-  nod.useNodLeft(() => {
-    handleButtonActivation(1);
-  });
-
-  nod.useNodBottom(() => {
-    handleButtonActivation(2);
-  });
-
-  nod.useNodRight(() => {
-    handleButtonActivation(3);
-  });
-
   // Start new game
-  const startGame = () => {
+  const startGame = useCallback(() => {
     setSequence([]);
     setPlayerSequence([]);
     setScore(0);
     setGameOver(false);
     setIsPlaying(true);
     generateNextSequence();
-  };
+  }, [generateNextSequence]);
+
+  // EEG nod handlers for gameplay
+  nod.useNodLeft(() => {
+    if (isPlaying) {
+      handleButtonActivation(1);
+    } else if (gameOver) {
+      // Check for left-right head shake pattern to return to menu
+      const handleMenuReturn = () => {
+        if (setActiveComponent) {
+          setActiveComponent('menu');
+        }
+      };
+      handleMenuReturn();
+    } else {
+      // Start game with any nod when not playing
+      startGame();
+    }
+  });
+
+  nod.useNodBottom(() => {
+    if (isPlaying) {
+      handleButtonActivation(2);
+    } else if (gameOver) {
+      // Restart game with downward nod
+      startGame();
+    } else {
+      // Start game with any nod when not playing
+      startGame();
+    }
+  });
+
+  nod.useNodRight(() => {
+    if (isPlaying) {
+      handleButtonActivation(3);
+    } else if (gameOver) {
+      // Check for left-right head shake pattern to return to menu
+      const handleMenuReturn = () => {
+        if (setActiveComponent) {
+          setActiveComponent('menu');
+        }
+      };
+      handleMenuReturn();
+    } else {
+      // Start game with any nod when not playing
+      startGame();
+    }
+  });
 
   // Show sequence whenever it changes
   useEffect(() => {
@@ -138,19 +172,36 @@ const Memory = () => {
 
       <div className="mb-8">
         <p className="text-lg mb-4">Score: {score}</p>
+
         {!isPlaying && (
-          <button
-            onClick={startGame}
-            className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
-          >
-            {gameOver ? "Play Again" : "Start Game"}
-          </button>
+          <div className="flex flex-col items-center space-y-4">
+            <button
+              onClick={startGame}
+              className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
+            >
+              {gameOver ? "Nod To Play Again" : "Nod To Start Game"}
+            </button>
+
+            {gameOver && (
+              <button
+                onClick={() => setActiveComponent("menu")}
+                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
+              >
+                Shake Your Head To Go Back
+              </button>
+            )}
+          </div>
         )}
+
         {gameOver && (
-          <p className="text-red-500 mt-4">Game Over! Final Score: {score}</p>
+          <div>
+            <p className="text-red-500 mt-4">Game Over! Final Score: {score}</p>
+            <p className="text-gray-600 mt-2">
+              Nod to play again, or shake head left-right to return to menu.
+            </p>
+          </div>
         )}
       </div>
-
       <div className="flex justify-center gap-4 mb-8">
         {BUTTONS.map(({ id, color, activeColor, pressedColor }) => (
           <button
@@ -161,16 +212,15 @@ const Memory = () => {
             className={`w-24 h-24 rounded-full 
                             transition-colors duration-200 
                             ${activeButton === id ? pressedColor : color}
-                            ${
-                              !isPlaying
-                                ? "opacity-50"
-                                : ""
-                            }`}
+                            ${!isPlaying ? "opacity-50" : ""}`}
           />
         ))}
       </div>
 
       <div className="text-lg">
+        {!isPlaying && !gameOver && (
+          <p className="text-gray-600">Nod your head to start the game</p>
+        )}
         {isPlaying && !gameOver && (
           <p>
             {isShowingSequence

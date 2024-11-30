@@ -4,7 +4,7 @@ import Memory from './Memory';
 
 const Menu = () => {
   const [activeComponent, setActiveComponent] = useState('menu');
-  const { concentration, nod } = useEeg();
+  const { nod } = useEeg();
   const [count, setCount] = useState(2); // Start with the first button selected
 
   const BUTTONS = [
@@ -35,7 +35,7 @@ const Menu = () => {
   });
 
   if (activeComponent === 'memory') {
-    return <Memory />;
+    return <Memory setActiveComponent={setActiveComponent} />;
   }
 
   return (
@@ -63,7 +63,7 @@ const Menu = () => {
       </div>
       <div className="text-center text-gray-600">
         <p>Use head movements to select a game:</p>
-        <p>Nod Left: Previous | Nod Right: Next | Nod Down: Confirm</p>
+        <p>Nod Left: Move selection left | Nod Right: Move selection right | Nod Down: Confirm</p>
       </div>
     </div>
   );
