@@ -27,7 +27,7 @@ const Menu = () => {
   });
 
   nod.useNodRight(() => {
-    setCount((prev) => (prev < prev ? prev + 1 : 1)); // Wrap around to first button
+    setCount((prev) => (prev < 3 ? prev + 1 : prev)); // Wrap around to first button
   });
 
   nod.useNodBottom(() => {
