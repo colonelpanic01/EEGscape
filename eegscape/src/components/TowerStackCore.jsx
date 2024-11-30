@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import { useNavigate } from "react-router";
+import useLocalStorage from "use-local-storage";
 
 const DEFAULT_WIDTH = 120;
 const DEFAULT_HEIGHT = 120;
@@ -22,6 +23,10 @@ const DEFAULT_FALLING_BLOCK = {
 
 const TowerStackCore = () => {
   const [blocks, setBlocks] = useState([{ width: DEFAULT_WIDTH, position: 0 }]);
+  const [highScore, setHighScore] = useLocalStorage(
+    "eegscape:tower-stack-high-score",
+    0
+  );
   const [currentBlock, setCurrentBlock] = useState(DEFAULT_CURRENT_BLOCK);
   const [fallingBlock, setFallingBlock] = useState(DEFAULT_FALLING_BLOCK);
   const [stackHeight, setStackHeight] = useState(0);
@@ -109,7 +114,13 @@ const TowerStackCore = () => {
         ...prev,
         { width: newBlockWidth, position: newBlockPosition },
       ]);
-      setStackHeight((prev) => prev + 1);
+      setStackHeight((prev) => {
+        const result = prev + 1;
+        if (result > highScore) {
+          setHighScore(result);
+        }
+        return result;
+      });
 
       setCurrentBlock({
         width: newBlockWidth,

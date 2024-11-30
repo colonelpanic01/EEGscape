@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import { useNavigate } from "react-router";
+import useLocalStorage from "use-local-storage";
 
 const Memory = () => {
   // Game states
@@ -13,6 +14,10 @@ const Memory = () => {
   const [activeButton, setActiveButton] = useState(null);
   const { nod } = useReceiveEeg();
   const navigate = useNavigate();
+  const [highScore, setHighScore] = useLocalStorage(
+    "eegscape:memory-high-score",
+    0
+  );
 
   // Constants
   const BUTTONS = [
@@ -87,7 +92,13 @@ const Memory = () => {
 
       // If player completed the sequence correctly
       if (newPlayerSequence.length === sequence.length) {
-        setScore(score + 1);
+        setScore((prev) => {
+          const result = prev + 1;
+          if (result > highScore) {
+            setHighScore(result);
+          }
+          return result;
+        });
         setPlayerSequence([]);
         setTimeout(() => {
           generateNextSequence();
@@ -99,7 +110,6 @@ const Memory = () => {
       isPlaying,
       playerSequence,
       sequence,
-      score,
       generateNextSequence,
     ]
   );
