@@ -1,6 +1,7 @@
 import React, { createContext, useState, useRef, useEffect, useContext } from 'react';
 import { MuseClient, zipSamples } from 'muse-js';
 import { epoch, fft, powerByBand } from '@neurosity/pipes';
+import * as THREE from 'three';
 
 // Create the context
 const EEGContext = createContext();

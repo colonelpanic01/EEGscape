@@ -7,13 +7,14 @@ import { useEffect } from "react";
 import MockEegEmitter from "./components/MockEegEmitter";
 import EegInputDisplay from "./components/EegInputDisplay";
 import TowerStack from "./pages/TowerStack";
+import EEGEmitter from "./components/EEGEmitter";
 
 function App() {
   useEffect(() => {}, []);
   return (
     <>
     <EEGProvider>
-      <MockEegEmitter />
+      <EEGEmitter />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
