@@ -1,12 +1,29 @@
 import { useEffect, useState } from "react";
 import useEeg from "../hooks/useEeg";
 
+function blockGenerator(
+  isFromLeft,
+  leftTranslate,
+  blockWidth,
+  prevBlockWidth,
+  targetBlockWidth
+) {
+  leftTranslate = isFromLeft ? leftTranslate : 100 - leftTranslate;
+  const rightEdge = (blockWidth / targetBlockWidth) * 100 + leftTranslate;
+
+  return {
+    leftEdge: leftTranslate,
+    rightEdge,
+  };
+}
+
 function TowerStackCore() {
   const [currentBlockWidth, setCurrentBlockWidth] = useState(80);
   const [currentBlockXPercent, setCurrentBlockXPercent] = useState({
     withinCenter: 0,
     fromCenter: 100,
   });
+  const [droppedBlocks, setDroppedBlocks] = useState([]);
   const [isFocus, setIsFocus] = useState(false);
   const [isFromLeft, setIsFromLeft] = useState(false);
   const { concentration } = useEeg();
