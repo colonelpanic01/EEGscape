@@ -17,7 +17,10 @@ function useReceiveEeg() {
   };
 
   const tilt = {
-    useTilt: (handler) => useEventSubscriber(EEG_EVENT_CODES.yaw, handler),
+    useTilt: (handler) =>
+      useEventSubscriber(EEG_EVENT_CODES.yaw, (e) => {
+        handler(e.detail);
+      }),
   };
 
   return {
