@@ -28,6 +28,11 @@ function MockEegEmitter() {
         dispatchEeg.nod.bottom();
         return;
       }
+
+      if (event.key === "t") {
+        dispatchEeg.tilt(80);
+        return;
+      }
     };
 
     // Attach the event listener once
