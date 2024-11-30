@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import useReceiveEeg from "../hooks/useReceiveEeg";
+import { useNavigate } from "react-router";
 
 const DEFAULT_WIDTH = 120;
 const DEFAULT_HEIGHT = 120;
@@ -29,6 +31,8 @@ const TowerStackCore = () => {
   );
   const [gameOver, setGameOver] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
+  const { nod } = useReceiveEeg();
+  const navigate = useNavigate();
 
   const gameRef = useRef(null);
 
@@ -125,6 +129,30 @@ const TowerStackCore = () => {
     setHeightOffset(0);
   }
 
+  nod.useNodBottom(() => {
+    if (!gameOver) {
+      return;
+    }
+
+    handlePlayAgain();
+  });
+
+  nod.useNodLeft(() => {
+    if (!gameOver) {
+      return;
+    }
+
+    navigate("/");
+  });
+
+  nod.useNodRight(() => {
+    if (!gameOver) {
+      return;
+    }
+
+    navigate("/");
+  });
+
   return (
     <div
       className="w-full h-full flex flex-col justify-center items-end"
@@ -180,6 +208,7 @@ const TowerStackCore = () => {
         {gameOver && (
           <div className="absolute inset-0 bg-red-500 bg-opacity-50 flex flex-col gap-2 justify-center items-center">
             <h1 className="text-2xl font-bold text-white">Game Over</h1>
+            <p>Nod left or right to go back to home. Nod down to play again.</p>
             <button className="btn" onClick={handlePlayAgain}>
               Play Again
             </button>
