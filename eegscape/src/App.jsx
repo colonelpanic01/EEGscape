@@ -5,6 +5,7 @@ import Inputs from "./inputs/Inputs";
 import { useEffect } from "react";
 import MockEegEmitter from "./components/MockEegEmitter";
 import EegInputDisplay from "./components/EegInputDisplay";
+import TowerStack from "./pages/TowerStack";
 
 function App() {
   useEffect(() => {}, []);
@@ -15,6 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/inputs" element={<Inputs />} />
+          <Route path="/tower-stack" element={<TowerStack />} />
         </Routes>
       </BrowserRouter>
       <EegInputDisplay />
