@@ -162,9 +162,9 @@ const Memory = () => {
                             transition-colors duration-200 
                             ${activeButton === id ? pressedColor : color}
                             ${
-                              !isPlaying || isShowingSequence
+                              !isPlaying
                                 ? "opacity-50"
-                                : "hover:opacity-80"
+                                : ""
                             }`}
           />
         ))}
