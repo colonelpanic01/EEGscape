@@ -175,9 +175,8 @@ const Memory = () => {
   }, [sequence, isPlaying, showSequence]);
 
   return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold mb-8">Memory Game</h1>
-
+    <div className="flex flex-col items-center space-y-6 p-8 max-w-md mx-auto bg-gray-100 rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold">Memory Game</h1>
       <div className="mb-8">
         <p className="text-lg mb-4">Score: {score}</p>
 

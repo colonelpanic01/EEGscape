@@ -15,7 +15,7 @@ const GyroFocus = ({ setActiveComponent }) => {
     };
 
     return (
-        <div>
+        <div className="flex flex-col items-center space-y-6 p-8 max-w-md mx-auto bg-gray-100 rounded-lg shadow-lg">
             <div>
                 <p>Example text</p>
                 <p>Current Yaw: {pitchValue !== null ? pitchValue : 'Not available'}</p>
