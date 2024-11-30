@@ -45,6 +45,7 @@ export default function MuseConnectPage() {
     objectRef.current = cube;
     camera.position.z = 5;
 
+
     const animate = () => {
       requestAnimationFrame(animate);
       renderer.render(scene, camera);
