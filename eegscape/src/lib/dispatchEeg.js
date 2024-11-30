@@ -24,6 +24,12 @@ const dispatchEeg = {
       const customEvent = new CustomEvent(EEG_EVENT_CODES.nodBottom, {});
       window.dispatchEvent(customEvent);
     },
+    tilt: (degree) => {
+      const customEvent = new CustomEvent(EEG_EVENT_CODES.yaw, {
+        detail: degree,
+      });
+      window.dispatchEvent(customEvent);
+    },
   },
 };
 

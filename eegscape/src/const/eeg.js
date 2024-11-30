@@ -4,6 +4,7 @@ const EEG_EVENT_CODES = {
   nodRight: "EEG:nod-right",
   nodLeft: "EEG:nod-left",
   nodBottom: "EEG:nod-bottom",
+  yaw: "EEG:yaw",
 };
 
 export default EEG_EVENT_CODES;

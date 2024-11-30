@@ -16,9 +16,14 @@ function useEeg() {
       useEventSubscriber(EEG_EVENT_CODES.nodRight, handler),
   };
 
+  const tilt = {
+    useTilt: (handler) => useEventSubscriber(EEG_EVENT_CODES.yaw, handler),
+  };
+
   return {
     concentration,
     nod,
+    tilt,
   };
 }
 
