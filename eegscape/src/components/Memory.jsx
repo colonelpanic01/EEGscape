@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useEeg from "../hooks/useEeg";
 
+
 const Memory = () => {
   // Game states
   const [sequence, setSequence] = useState([]);
