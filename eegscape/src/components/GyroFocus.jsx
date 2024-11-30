@@ -2,30 +2,30 @@ import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 
 const GyroFocus = ({ setActiveComponent }) => {
-    const { concentration, nod, tilt } = useReceiveEeg();
-    const [yawValue, setYawValue] = useState(null);
+    const { tilt } = useReceiveEeg();
+    const [pitchValue, setPitchValue] = useState(null);
 
-    tilt.useTilt((newYaw) => {
-        setYawValue(newYaw);
-        console.log(`Yaw: ${newYaw}`);
+    tilt.useTilt((newPitch) => {
+        setPitchValue(newPitch);
+        console.log(`Yaw: ${newPitch}`);
     });
 
-    const handleShowYaw = () => {
-        console.log(`Current Yaw: ${yawValue ?? 'Not available'}`);
+    const handleShowPitch = () => {
+        console.log(`Current pitch: ${pitchValue ?? 'Not available'}`);
     };
 
     return (
         <div>
             <div>
                 <p>Example text</p>
-                <p>Current Yaw: {yawValue !== null ? yawValue : 'Not available'}</p>
+                <p>Current Yaw: {pitchValue !== null ? pitchValue : 'Not available'}</p>
             </div>
             <div>
                 <button
-                    onClick={handleShowYaw}
+                    onClick={handleShowPitch}
                     className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
                 >
-                    Click to show yaw in console
+                    Click to show pitch in console
                 </button>
             </div>
         </div>

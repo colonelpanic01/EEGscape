@@ -58,9 +58,13 @@ function EEGEmitter() {
     }
   }, [pitchOffset, yawOffset, dispatchState]);
 
+  // useEffect(() => {
+  //   dispatchEeg.tilt(yawOffset);
+  // }, [yawOffset]);
+
   useEffect(() => {
-    dispatchEeg.tilt(yawOffset);
-  }, [yawOffset]);
+    dispatchEeg.tilt(pitchOffset);
+  }, [pitchOffset]);
 
   return null; // we're not rendering anything
 }
