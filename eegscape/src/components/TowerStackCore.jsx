@@ -1,28 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useEeg from "../hooks/useEeg";
+
+const defaultBlockXPercent = {
+  withinCenter: 0,
+  fromCenter: 100,
+};
 
 function blockGenerator(
   isFromLeft,
   leftTranslate,
   blockWidth,
-  prevBlockWidth,
-  targetBlockWidth
+  prevBlock,
+  targetBlockWidth,
+  id
 ) {
-  leftTranslate = isFromLeft ? leftTranslate : 100 - leftTranslate;
-  const rightEdge = (blockWidth / targetBlockWidth) * 100 + leftTranslate;
+  let leftEdge = isFromLeft ? leftTranslate : 100 - leftTranslate;
+  let rightEdge = (blockWidth / targetBlockWidth) * 100 + leftTranslate;
+
+  const { leftEdgePrev, rightEdgePrev, widthPrev } = prevBlock;
+
+  leftEdge = Math.max(leftEdge, leftEdgePrev);
+  rightEdge = Math.min(rightEdge, rightEdgePrev);
+  const width = ((rightEdgePrev - leftEdgePrev) / 100) * targetBlockWidth;
 
   return {
-    leftEdge: leftTranslate,
+    leftEdge,
     rightEdge,
+    width,
+    id
   };
 }
 
 function TowerStackCore() {
   const [currentBlockWidth, setCurrentBlockWidth] = useState(80);
-  const [currentBlockXPercent, setCurrentBlockXPercent] = useState({
-    withinCenter: 0,
-    fromCenter: 100,
-  });
+  const [score, setScore] = useState(0);
+  const [currentBlockXPercent, setCurrentBlockXPercent] =
+    useState(defaultBlockXPercent);
+  const targetBlockRef = useRef(null);
   const [droppedBlocks, setDroppedBlocks] = useState([]);
   const [isFocus, setIsFocus] = useState(false);
   const [isFromLeft, setIsFromLeft] = useState(false);
@@ -83,47 +97,98 @@ function TowerStackCore() {
     };
   }, [isFocus]);
 
+  function resetBlock() {
+    setIsFromLeft((prev) => !prev);
+    setCurrentBlockXPercent(defaultBlockXPercent);
+    setScore(prev => prev + 1);
+  }
+
+  function handleDropBlock() {
+    if (currentBlockXPercent.fromCenter > 0) {
+      console.log("Block dropped nowhere!");
+      return;
+    }
+
+    const blockWidth =
+      targetBlockRef.current?.getBoundingClientRect().width ?? -1;
+
+    if (blockWidth <= -1) {
+      return;
+    }
+
+    const prevBlock =
+      droppedBlocks.length > 0
+        ? droppedBlocks[droppedBlocks.length - 1]
+        : { leftEdge: 0, rightEdge: 100 };
+    const newBlock = blockGenerator(
+      isFromLeft,
+      currentBlockXPercent.withinCenter,
+      blockWidth,
+      prevBlock,
+      currentBlockWidth,
+      score
+    );
+    setDroppedBlocks((prev) => [...prev, newBlock]);
+    resetBlock();
+  }
+
   const directionMultiplier = isFromLeft ? -1 : 1;
 
   return (
-    <div
-      className="flex w-full items-center relative"
-      style={{
-        height: `${currentBlockWidth}px`,
-      }}
-    >
-      <div className="flex-grow h-full relative">
-        <div
-          className={`bg-white absolute ${isFromLeft ? "" : "invisible"} `}
-          style={{
-            transform: `translateX(${
-              currentBlockXPercent.withinCenter / (-1 * directionMultiplier)
-            }%)`,
-            height: `${currentBlockWidth}px`,
-            width: `${currentBlockWidth}px`,
-            right: `calc(min(${currentBlockXPercent.fromCenter}%, calc(100% - ${currentBlockWidth}px)) / ${directionMultiplier})`,
-          }}
-        ></div>
+    <div className="flex flex-col w-full">
+      <div>
+        <button className="btn" onClick={handleDropBlock}>
+          Drop
+        </button>
       </div>
       <div
-        className="bg-white h-full"
+        className="flex w-full items-center relative"
         style={{
-          width: `${currentBlockWidth}px`,
+          height: `${currentBlockWidth}px`,
         }}
-      ></div>
-
-      <div className="flex-grow h-full relative">
+      >
+        <div className="flex-grow h-full relative">
+          <div
+            className={`bg-white absolute ${isFromLeft ? "" : "invisible"} `}
+            style={{
+              transform: `translateX(${
+                currentBlockXPercent.withinCenter / (-1 * directionMultiplier)
+              }%)`,
+              height: `${currentBlockWidth}px`,
+              width: `${currentBlockWidth}px`,
+              right: `calc(min(${currentBlockXPercent.fromCenter}%, calc(100% - ${currentBlockWidth}px)) / ${directionMultiplier})`,
+            }}
+          ></div>
+        </div>
         <div
-          className={`bg-white absolute ${!isFromLeft ? "" : "invisible"} `}
+          ref={targetBlockRef}
+          className="bg-blue-400 min-h-fit h-full flex flex-col"
           style={{
-            transform: `translateX(${
-              currentBlockXPercent.withinCenter / (-1 * directionMultiplier)
-            }%)`,
-            height: `${currentBlockWidth}px`,
             width: `${currentBlockWidth}px`,
-            left: `calc(min(${currentBlockXPercent.fromCenter}%, calc(100% - ${currentBlockWidth}px)) / ${directionMultiplier})`,
           }}
-        ></div>
+        >
+          {[...droppedBlocks, defaultBlockXPercent].map(() => {
+            return (
+              <div key={}>
+
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="flex-grow h-full relative">
+          <div
+            className={`bg-white absolute ${!isFromLeft ? "" : "invisible"} `}
+            style={{
+              transform: `translateX(${
+                currentBlockXPercent.withinCenter / (-1 * directionMultiplier)
+              }%)`,
+              height: `${currentBlockWidth}px`,
+              width: `${currentBlockWidth}px`,
+              left: `calc(min(${currentBlockXPercent.fromCenter}%, calc(100% - ${currentBlockWidth}px)) / ${directionMultiplier})`,
+            }}
+          ></div>
+        </div>
       </div>
     </div>
   );
