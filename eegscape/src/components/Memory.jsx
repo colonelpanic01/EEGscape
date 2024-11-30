@@ -9,6 +9,7 @@ const Memory = () => {
     const [isShowingSequence, setIsShowingSequence] = useState(false);
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
+    const [activeButton, setActiveButton] = useState(null);
     const { concentration, nod } = useEeg();
 
     // Constants
@@ -34,6 +35,7 @@ const Memory = () => {
     ];
     const FLASH_DURATION = 500;
     const SEQUENCE_INTERVAL = 1000;
+    const BUTTON_ACTIVE_DURATION = 500;
 
     // Generate next sequence by adding a random button
     const generateNextSequence = useCallback(() => {
@@ -58,9 +60,13 @@ const Memory = () => {
         setIsShowingSequence(false);
     }, [sequence]);
 
-    // Handle button clicks
-    const handleButtonClick = (buttonId) => {
+    // Handle button activation (for both clicks and EEG)
+    const handleButtonActivation = useCallback((buttonId) => {
         if (isShowingSequence || !isPlaying) return;
+
+        // Visual feedback
+        setActiveButton(buttonId);
+        setTimeout(() => setActiveButton(null), BUTTON_ACTIVE_DURATION);
 
         const newPlayerSequence = [...playerSequence, buttonId];
         setPlayerSequence(newPlayerSequence);
@@ -84,20 +90,20 @@ const Memory = () => {
                 generateNextSequence();
             }, SEQUENCE_INTERVAL);
         }
-    };
+    }, [isShowingSequence, isPlaying, playerSequence, sequence, score, generateNextSequence]);
 
-    // // EEG nod handlers
-    // nod.useNodLeft(() => {
-    //     handleButtonClick(1); // Left button (red)
-    // });
+    // EEG nod handlers
+    nod.useNodLeft(() => {
+        handleButtonActivation(1);
+    });
 
-    // nod.useNodBottom(() => {
-    //     handleButtonClick(2); // Middle button (blue)
-    // });
+    nod.useNodBottom(() => {
+        handleButtonActivation(2);
+    });
 
-    // nod.useNodRight(() => {
-    //     handleButtonClick(3); // Right button (green)
-    // });
+    nod.useNodRight(() => {
+        handleButtonActivation(3);
+    });
 
     // Start new game
     const startGame = () => {
@@ -125,7 +131,7 @@ const Memory = () => {
                 {!isPlaying && (
                     <button
                         onClick={startGame}
-                        className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                        className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
                     >
                         {gameOver ? 'Play Again' : 'Start Game'}
                     </button>
@@ -136,15 +142,16 @@ const Memory = () => {
             </div>
 
             <div className="flex justify-center gap-4 mb-8">
-                {BUTTONS.map(({ id, color }) => (
+                {BUTTONS.map(({ id, color, activeColor, pressedColor }) => (
                     <button
                         key={id}
                         id={`button-${id}`}
-                        onClick={() => handleButtonClick(id)}
+                        onClick={() => handleButtonActivation(id)}
                         disabled={!isPlaying || isShowingSequence}
-                        className={`w-24 h-24 rounded-full ${color} 
-              transition-colors duration-200 
-              ${(!isPlaying || isShowingSequence) ? 'opacity-50' : 'hover:opacity-80'}`}
+                        className={`w-24 h-24 rounded-full 
+                            transition-colors duration-200 
+                            ${activeButton === id ? pressedColor : color}
+                            ${(!isPlaying || isShowingSequence) ? 'opacity-50' : 'hover:opacity-80'}`}
                     />
                 ))}
             </div>
