@@ -8,7 +8,11 @@ import * as THREE from "three";
 export default function MuseConnectPage() {
   const [status, setStatus] = useState("Disconnected");
   const [selectedChannel, setSelectedChannel] = useState(0);
-  const [metrics, setMetrics] = useState({ concentration: 0, relaxation: 0, fatigue: 0 });
+  const [metrics, setMetrics] = useState({
+    concentration: 0,
+    relaxation: 0,
+    fatigue: 0,
+  });
   const [chartData, setChartData] = useState({
     labels: [], // for time points
     datasets: [
@@ -28,22 +32,29 @@ export default function MuseConnectPage() {
   const rendererRef = useRef(null);
 
   useEffect(() => {
+
+    if (sceneRef.current) {
+      while (sceneRef.current.firstChild) {
+        sceneRef.current.removeChild(sceneRef.current.firstChild);
+      }
+    }
+
     // initializing the Three.js scene
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ alpha: true }); // alpha for transparent background
-    renderer.setSize(window.innerWidth/2, window.innerHeight/2);
+    renderer.setSize(200, 200);
     renderer.setClearColor(0x000000, 0);
     sceneRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     // creating cube to rep object in 3D space
     const geometry = new THREE.BoxGeometry(0.75, 0.75, 0.75);
-    const material = new THREE.MeshBasicMaterial({ color: 0xAFE1AF });
+    const material = new THREE.MeshBasicMaterial({ color: 0xafe1af });
     const cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
     objectRef.current = cube;
-    camera.position.z = 5;
+    camera.position.z = 2;
 
 
     const animate = () => {
@@ -79,7 +90,7 @@ export default function MuseConnectPage() {
 
       // yippee time to subscribe to accelerometer data
       museClient.accelerometerData.subscribe((data) => {
-        //console.log("Accelerometer data:", data); 
+        //console.log("Accelerometer data:", data);
         if (data && Array.isArray(data.samples) && data.samples.length > 0) {
           const { x, y, z } = data.samples[0];
 
@@ -90,9 +101,15 @@ export default function MuseConnectPage() {
           const yAxis = new THREE.Vector3(1, 0, 0);
           // determine yaw and pitch and final rotation
           const yawAngle = Math.atan2(gVector.x, gVector.z);
-          const yawRotation = new THREE.Quaternion().setFromAxisAngle(yAxis, yawAngle);
+          const yawRotation = new THREE.Quaternion().setFromAxisAngle(
+            yAxis,
+            yawAngle
+          );
           const pitchAngle = Math.atan2(gVector.y, gVector.z);
-          const pitchRotation = new THREE.Quaternion().setFromAxisAngle(xAxis, pitchAngle);
+          const pitchRotation = new THREE.Quaternion().setFromAxisAngle(
+            xAxis,
+            pitchAngle
+          );
           const finalRotation = yawRotation.multiply(pitchRotation);
 
           // update the cubes rotation
@@ -105,7 +122,6 @@ export default function MuseConnectPage() {
           const pitchDegrees = THREE.MathUtils.radToDeg(pitchAngle);
           setYawDegrees(yawDegrees.toFixed(2));
           setPitchDegrees(pitchDegrees.toFixed(2));
-
         } else {
           console.error("ruh ro, error in the accelommeter data data:", data);
         }
@@ -165,76 +181,87 @@ export default function MuseConnectPage() {
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>EEGscape</h1>
-      <p>Status: {status}</p>
+    <>
+      <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+        <h1>EEGscape</h1>
+        <p>Status: {status}</p>
 
-      <button onClick={connectToMuse} style={{ marginBottom: "20px" }}>
-        Connect to Muse
-      </button>
+        <button onClick={connectToMuse} style={{ marginBottom: "20px" }}>
+          Connect to Muse
+        </button>
 
-      {/* Dropdown for channel selection */}
-      <div style={{ marginBottom: "20px" }}>
-        <label htmlFor="channel-select" style={{ marginRight: "10px" }}>
-          Select Channel:
-        </label>
-        <select
-          id="channel-select"
-          value={selectedChannel}
-          onChange={handleChannelChange}
-          style={{ padding: "5px", fontSize: "16px" }}
-        >
-          <option value="0">Channel 0</option>
-          <option value="1">Channel 1</option>
-          <option value="2">Channel 2</option>
-          <option value="3">Channel 3</option>
-        </select>
-      </div>
-
-      {/* Metrics Display */}
-      <div style={{ marginBottom: "20px", display: "flex", justifyContent: "center", width: "100%" }}>
-        <div style={{ fontSize: "18px", paddingRight: "15px"}}>
-          Relaxation: {metrics.relaxation.toFixed(2)}
+        {/* Dropdown for channel selection */}
+        <div style={{ marginBottom: "20px" }}>
+          <label htmlFor="channel-select" style={{ marginRight: "10px" }}>
+            Select Channel:
+          </label>
+          <select
+            id="channel-select"
+            value={selectedChannel}
+            onChange={handleChannelChange}
+            style={{ padding: "5px", fontSize: "16px" }}
+          >
+            <option value="0">Channel 0</option>
+            <option value="1">Channel 1</option>
+            <option value="2">Channel 2</option>
+            <option value="3">Channel 3</option>
+          </select>
         </div>
-        <div style={{ fontSize: "18px", display: "flex", paddingRight: "15px" }}>
-          Focus: {metrics.concentration.toFixed(2)}
-        </div>
-        {/* Conditional Display */}
-        <div style={{ fontSize: "18px", display: "flex" }}>
-          {metrics.concentration > metrics.relaxation ? (
-            <span style={{ color: "red", fontWeight: "bold" }}>Concentrated</span>
-          ) : (
-            <span style={{ color: "blue", fontWeight: "bold" }}>Relaxed</span>
-          )}
-        </div>
-      </div>
 
-      {/* EEG Graph */}
-      <div style={{ width: "500px", height: "400px"}}>
-        <Line
-          data={chartData}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { title: { display: true, text: "Time" } },
-              y: { title: { display: true, text: "Band Values" } },
-            },
+        {/* Metrics Display */}
+        <div
+          style={{
+            marginBottom: "20px",
+            display: "flex",
+            justifyContent: "center",
+            width: "100%",
           }}
-        />
-      </div>
-      
-      {/* Head tracking stuff */}
-      <div>
-        <h3>Head Movement Data:</h3>
-        <p>Right/Left Tilt: {pitchDegrees}°</p>
-        <p>Up/Down Tilt: {yawDegrees}°</p>
-        {/* <p>Right/Left Tilt: {yawDegrees}°</p>
+        >
+          <div style={{ fontSize: "18px", paddingRight: "15px" }}>
+            Relaxation: {metrics.relaxation.toFixed(2)}
+          </div>
+          <div
+            style={{ fontSize: "18px", display: "flex", paddingRight: "15px" }}
+          >
+            Focus: {metrics.concentration.toFixed(2)}
+          </div>
+          {/* Conditional Display */}
+          <div style={{ fontSize: "18px", display: "flex" }}>
+            {metrics.concentration > metrics.relaxation ? (
+              <span style={{ color: "red", fontWeight: "bold" }}>
+                Concentrated
+              </span>
+            ) : (
+              <span style={{ color: "blue", fontWeight: "bold" }}>Relaxed</span>
+            )}
+          </div>
+        </div>
+
+        {/* EEG Graph */}
+        <div style={{ width: "500px", height: "400px" }}>
+          <Line
+            data={chartData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: "Time" } },
+                y: { title: { display: true, text: "Band Values" } },
+              },
+            }}
+          />
+        </div>
+
+        {/* Head tracking stuff */}
+        <div>
+          <h3>Head Movement Data:</h3>
+          <p>Right/Left Tilt: {pitchDegrees}°</p>
+          <p>Up/Down Tilt: {yawDegrees}°</p>
+          {/* <p>Right/Left Tilt: {yawDegrees}°</p>
         <p>Up/Down Tilt: {pitchDegrees}°</p> */}
+        </div>
       </div>
-      <div ref={sceneRef} style={{ position: "absolute", top: "130px", left: "175px"}} />
-
-
-    </div>
+      <div ref={sceneRef} className="absolute top-0 right-0 bg-slate-800" />
+    </>
   );
 }
