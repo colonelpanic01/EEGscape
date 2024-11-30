@@ -3,7 +3,7 @@ import useReceiveEeg from "../hooks/useReceiveEeg";
 
 function Welcome({ onContinue }) {
   const { nod } = useReceiveEeg();
-  const { connectToMuse } = useEEG();
+  const { connectToMuse, configureDefaultPosition } = useEEG();
 
   nod.useNodBottom(() => {
     onContinue();
@@ -19,7 +19,14 @@ function Welcome({ onContinue }) {
         <p>This line will have instructions on connecting the headset</p>
       </div>
 
-      <button onClick={connectToMuse}>Connect to Muse</button>
+      <button onClick={connectToMuse}>
+        Connect to Muse
+      </button>
+
+      <button onClick={configureDefaultPosition}>
+        Configure Default Position
+      </button>
+
 
       <div>
         <button

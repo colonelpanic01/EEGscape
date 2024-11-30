@@ -1,14 +1,20 @@
-import React, { createContext, useState, useRef, useEffect, useContext } from 'react';
-import { MuseClient, zipSamples } from 'muse-js';
-import { epoch, fft, powerByBand } from '@neurosity/pipes';
-import * as THREE from 'three';
+import React, {
+  createContext,
+  useState,
+  useRef,
+  useEffect,
+  useContext,
+} from "react";
+import { MuseClient, zipSamples } from "muse-js";
+import { epoch, fft, powerByBand } from "@neurosity/pipes";
+import * as THREE from "three";
 
 // Create the context
 const EEGContext = createContext();
 
 // EEGContext provider component
 export const EEGProvider = ({ children }) => {
-  const [status, setStatus] = useState('Disconnected');
+  const [status, setStatus] = useState("Disconnected");
   const [metrics, setMetrics] = useState({
     concentration: 0,
     relaxation: 0,
@@ -16,17 +22,18 @@ export const EEGProvider = ({ children }) => {
   });
   const [yawDegrees, setYawDegrees] = useState(0);
   const [pitchDegrees, setPitchDegrees] = useState(0);
+  const [defaultPosition, setDefaultPosition] = useState({ yaw: 0, pitch: 0 });
 
   const museClientRef = useRef(null);
 
   const connectToMuse = async () => {
     try {
-      setStatus('Connecting...');
+      setStatus("Connecting...");
       const museClient = new MuseClient();
       await museClient.connect();
       await museClient.start();
       museClientRef.current = museClient;
-      setStatus('Connected');
+      setStatus("Connected");
 
       museClient.accelerometerData.subscribe((data) => {
         if (data && Array.isArray(data.samples) && data.samples.length > 0) {
@@ -38,7 +45,7 @@ export const EEGProvider = ({ children }) => {
           setYawDegrees(THREE.MathUtils.radToDeg(yawAngle).toFixed(2));
           setPitchDegrees(THREE.MathUtils.radToDeg(pitchAngle).toFixed(2));
         } else {
-          console.error('Error in accelerometer data:', data);
+          console.error("Error in accelerometer data:", data);
         }
       });
 
@@ -60,8 +67,8 @@ export const EEGProvider = ({ children }) => {
           calculateMetrics(bandData);
         });
     } catch (error) {
-      console.error('Error connecting to Muse:', error);
-      setStatus('Connection Failed');
+      console.error("Error connecting to Muse:", error);
+      setStatus("Connection Failed");
     }
   };
 
@@ -74,12 +81,40 @@ export const EEGProvider = ({ children }) => {
     setMetrics({ relaxation, fatigue, concentration });
   };
 
+  const configureDefaultPosition = () => {
+    if (museClientRef.current) {
+      const subscription = museClientRef.current.accelerometerData.subscribe((data) => {
+        if (data && Array.isArray(data.samples) && data.samples.length > 0) {
+          const { x, y, z } = data.samples[0];
+          const gVector = new THREE.Vector3(x, y, z);
+          const yawAngle = Math.atan2(gVector.x, gVector.z);
+          const pitchAngle = Math.atan2(gVector.y, gVector.z);
+  
+          const yawDegrees = THREE.MathUtils.radToDeg(yawAngle).toFixed(2); // Calculate yaw degrees
+          const pitchDegrees = THREE.MathUtils.radToDeg(pitchAngle).toFixed(2); // Calculate pitch degrees
+  
+          console.log('Setting default position:', yawDegrees, pitchDegrees);
+          setDefaultPosition({ yaw: yawDegrees, pitch: pitchDegrees }); // Set the default position with calculated values
+  
+          // Unsubscribe after capturing the first snapshot
+          subscription.unsubscribe();
+        } else {
+          console.error('Error in accelerometer data:', data);
+        }
+      });
+    } else {
+      console.error('MuseClient instance is not connected yet.');
+    }
+  };
+
   const value = {
     status,
     metrics,
     yawDegrees,
     pitchDegrees,
     connectToMuse,
+    configureDefaultPosition,
+    defaultPosition,
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;

@@ -3,41 +3,50 @@ import { EEGProvider, useEEG } from '../context/EEGContext';
 import dispatchEeg from "../lib/dispatchEeg";
 
 function EEGEmitter() {
-  // Get yawDegrees and pitchDegrees from the EEGContext
-  const { yawDegrees, pitchDegrees } = useEEG();
+  // Get yawDegrees, pitchDegrees, and defaultPosition from EEGContext
+  const { yawDegrees, pitchDegrees, defaultPosition } = useEEG();
 
-  // States to track whether an action has been dispatched for pitch and yaw
-  const [leftNodDispatched, setLeftNodDispatched] = useState(false);
-  const [rightNodDispatched, setRightNodDispatched] = useState(false);
-  const [bottomNodDispatched, setBottomNodDispatched] = useState(false);
+  // State to track the current dispatched action (only one at a time)
+  const [dispatchState, setDispatchState] = useState(null);
+
+  // Calculate the offset yaw and pitch degrees based on the default position
+  const yawOffset = yawDegrees - defaultPosition?.yaw || 0;
+  const pitchOffset = pitchDegrees - defaultPosition?.pitch || 0;
 
   useEffect(() => {
-    console.log(pitchDegrees, yawDegrees);
+    console.log(pitchDegrees, yawDegrees, defaultPosition, yawOffset, pitchOffset);
 
-    // Check pitchDegrees for left nod
-    if (pitchDegrees <= -30 && !leftNodDispatched) {
-      dispatchEeg.nod.left(); // Trigger left tilt if pitch is <= -30
-      setLeftNodDispatched(true); // Mark as dispatched
-    } else if (pitchDegrees > -30 && leftNodDispatched) {
-      setLeftNodDispatched(false); // Reset if condition no longer met
+    // Avoid dispatching multiple actions simultaneously
+    if (dispatchState) return; // Prevent if an action is already in progress
+
+    // Handle pitch-based nods
+    if (pitchOffset <= -30) {
+      dispatchEeg.nod.left();
+      setDispatchState("left");
+    } else if (pitchOffset >= 30) {
+      dispatchEeg.nod.right();
+      setDispatchState("right");
     }
 
-    // Check pitchDegrees for right nod
-    if (pitchDegrees >= 30 && !rightNodDispatched) {
-      dispatchEeg.nod.right(); // Trigger right tilt if pitch is >= 30
-      setRightNodDispatched(true); // Mark as dispatched
-    } else if (pitchDegrees < 30 && rightNodDispatched) {
-      setRightNodDispatched(false); // Reset if condition no longer met
+    // Handle yaw-based nod
+    if (yawOffset >= 20) {
+      dispatchEeg.nod.bottom();
+      setDispatchState("bottom");
     }
+  }, [yawOffset, pitchOffset, dispatchState, defaultPosition]); // dependencies include offsets and dispatch state
 
-    // Check yawDegrees for bottom nod
-    if (yawDegrees >= 20 && !bottomNodDispatched) {
-      dispatchEeg.nod.bottom(); // Trigger bottom nod if yaw is >= 20
-      setBottomNodDispatched(true); // Mark as dispatched
-    } else if (yawDegrees < 20 && bottomNodDispatched) {
-      setBottomNodDispatched(false); // Reset if condition no longer met
+  // Reset dispatchState when the conditions are no longer met
+  useEffect(() => {
+    if (dispatchState === "left" && pitchOffset > -30) {
+      setDispatchState(null);
     }
-  }, [yawDegrees, pitchDegrees, leftNodDispatched, rightNodDispatched, bottomNodDispatched]); // dependencies updated to include the dispatched states
+    if (dispatchState === "right" && pitchOffset < 30) {
+      setDispatchState(null);
+    }
+    if (dispatchState === "bottom" && yawOffset < 20) {
+      setDispatchState(null);
+    }
+  }, [pitchOffset, yawOffset, dispatchState]);
 
   return null; // we're not rendering anything
 }
