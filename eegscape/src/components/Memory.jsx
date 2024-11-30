@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
+import { useNavigate } from "react-router";
 
-const Memory = ({ setActiveComponent }) => {
+const Memory = () => {
   // Game states
   const [sequence, setSequence] = useState([]);
   const [playerSequence, setPlayerSequence] = useState([]);
@@ -11,6 +12,7 @@ const Memory = ({ setActiveComponent }) => {
   const [gameOver, setGameOver] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
   const { nod } = useReceiveEeg();
+  const navigate = useNavigate();
 
   // Constants
   const BUTTONS = [
@@ -119,9 +121,7 @@ const Memory = ({ setActiveComponent }) => {
     } else if (gameOver) {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
-        if (setActiveComponent) {
-          setActiveComponent("menu");
-        }
+        navigate("/");
       };
       handleMenuReturn();
     } else {
@@ -148,9 +148,7 @@ const Memory = ({ setActiveComponent }) => {
     } else if (gameOver) {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
-        if (setActiveComponent) {
-          setActiveComponent("menu");
-        }
+        navigate("/");
       };
       handleMenuReturn();
     } else {
@@ -184,7 +182,7 @@ const Memory = ({ setActiveComponent }) => {
 
             {gameOver && (
               <button
-                onClick={() => setActiveComponent("menu")}
+                onClick={() => navigate("/")}
                 className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
               >
                 Shake Your Head To Go Back
