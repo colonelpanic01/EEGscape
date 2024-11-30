@@ -2,6 +2,7 @@ import { useState } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import Memory from "./Memory";
 import GyroFocus from "./GyroFocus";
+import Metrics from "./Metrics";
 
 const Menu = () => {
   const [activeComponent, setActiveComponent] = useState("menu");

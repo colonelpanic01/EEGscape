@@ -8,6 +8,7 @@ import MockEegEmitter from "./components/MockEegEmitter";
 import EegInputDisplay from "./components/EegInputDisplay";
 import TowerStack from "./pages/TowerStack";
 import EEGEmitter from "./components/EEGEmitter";
+import Metrics from "./components/Metrics";
 
 function App() {
   useEffect(() => {}, []);
@@ -16,6 +17,7 @@ function App() {
       <EEGProvider>
         <EEGEmitter />
         <MockEegEmitter />
+        <Metrics />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
