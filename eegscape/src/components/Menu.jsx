@@ -44,17 +44,15 @@ const Menu = () => {
 
   if (activeComponent === "memory") {
     return <Memory setActiveComponent={setActiveComponent} />;
-  }
-  else if (activeComponent === "gyrofocus") {
+  } else if (activeComponent === "gyrofocus") {
     return <GyroFocus setActiveComponent={setActiveComponent} />;
-  }
-  else if (activeComponent === "towerstack") {
+  } else if (activeComponent === "towerstack") {
     return <TowerStack setActiveComponent={setActiveComponent} />;
   }
 
   return (
     <div className="w-full px-4 sm:px-8 md:px-16 lg:px-24">
-      <div className="flex flex-col items-center space-y-8 py-8 max-w-[600px] mx-auto bg-gray-100 rounded-lg shadow-lg">
+      <div className="flex flex-col items-center space-y-8 py-8 max-w-[600px] mx-auto rounded-lg shadow-lg">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-4">Headset Connected!</h1>
           <p className="text-lg text-gray-700">
