@@ -24,7 +24,7 @@ const Metrics = () => {
   }, []);
 
   return (
-    <div className="flex fixed h-fit overflow-hidden top-0 backdrop-blur-md p-4 flex-row space-x-4 w-screen justify-between">
+    <div className="flex fixed h-fit overflow-hidden top-0 p-4 flex-row space-x-4 w-screen justify-between">
       {/* Conditionally render EEGGraph and HeadMovementVisualization based on showComponents state */}
       {showComponents && (
         <>
