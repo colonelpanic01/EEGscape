@@ -123,10 +123,12 @@ const GyroFocus = ({ setActiveComponent }) => {
     if (!isFocused || !isAligned) {
       return;
     }
-    const timeout = setTimeout(() => {}, ALIGNMENT_AND_FOCUS_TIME);
+    const timeout = setTimeout(() => {
+      generateNewTarget();
+    }, ALIGNMENT_AND_FOCUS_TIME);
 
     const increment =
-      ALIGNMENT_AND_FOCUS_TIME / ALIGNMENT_AND_FOCUS_TIME_INCREMENT;
+      (ALIGNMENT_AND_FOCUS_TIME_INCREMENT / ALIGNMENT_AND_FOCUS_TIME) * 100;
 
     const interval = setInterval(() => {
       setConcentrationLevel((prev) => {
