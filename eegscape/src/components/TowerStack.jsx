@@ -220,7 +220,7 @@ const TowerStack = ({ setActiveComponent }) => {
 
   return (
     <div
-      className="w-full h-full flex flex-col justify-center items-end"
+      className="w-full h-full flex flex-col justify-center items-end outline-none focus:outline-none"
       onKeyDown={(e) => e.key === " " && handleBlockDrop()}
       tabIndex={0}
     >
