@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Welcome from "../components/Welcome";
 import Menu from "../components/Menu";
 
 function Home() {
@@ -11,7 +10,6 @@ function Home() {
 
   return (
     <div>
-      {/* <Menu /> */}
       {showMenu ? <Menu /> : <Welcome onContinue={handleContinue} />}
     </div>
   );
