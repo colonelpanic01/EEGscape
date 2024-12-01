@@ -24,7 +24,7 @@ function useReceiveEeg() {
   };
 
   const blink = {
-    useBlink: (handler) => useEventSubscriber(EEG_EVENT_CODES.yaw, handler),
+    useBlink: (handler) => useEventSubscriber(EEG_EVENT_CODES.blink, handler),
   };
 
   return {
