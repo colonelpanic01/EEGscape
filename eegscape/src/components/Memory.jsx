@@ -131,7 +131,9 @@ const Memory = () => {
     } else if (gameOver) {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
-        navigate("/");
+        if (setActiveComponent) {
+          setActiveComponent("menu");
+        }
       };
       handleMenuReturn();
     } else {
@@ -158,7 +160,9 @@ const Memory = () => {
     } else if (gameOver) {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
-        navigate("/");
+        if (setActiveComponent) {
+          setActiveComponent("menu");
+        }
       };
       handleMenuReturn();
     } else {
@@ -176,9 +180,9 @@ const Memory = () => {
 
   return (
     <div className="flex flex-col items-center space-y-6 p-8 max-w-md mx-auto bg-gray-100 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold">Memory Game</h1>
+      <h1 className="text-2xl font-bold text-black">Memory Game</h1>
       <div className="mb-8">
-        <p className="text-lg mb-4">Score: {score}</p>
+        <p className="text-lg mb-4 text-black">Score: {score}</p>
 
         {!isPlaying && (
           <div className="flex flex-col items-center space-y-4">
@@ -191,7 +195,7 @@ const Memory = () => {
 
             {gameOver && (
               <button
-                onClick={() => navigate("/")}
+                onClick={() => setActiveComponent("menu")}  // Fixed: Wrap in callback
                 className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
               >
                 Shake Your Head To Go Back
@@ -229,7 +233,7 @@ const Memory = () => {
           <p className="text-gray-600">Nod your head to start the game</p>
         )}
         {isPlaying && !gameOver && (
-          <p>
+          <p className="text-black">
             {isShowingSequence
               ? "Watch the sequence..."
               : "Your turn! Repeat the sequence"}

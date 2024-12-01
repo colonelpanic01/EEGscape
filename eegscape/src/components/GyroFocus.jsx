@@ -10,7 +10,7 @@ const GyroFocus = ({ setActiveComponent }) => {
     const [isAligned, setIsAligned] = useState(false);
 
     // Constants for game mechanics
-    const ALIGNMENT_THRESHOLD = 5; // Degrees of tolerance for alignment
+    const ALIGNMENT_THRESHOLD = 7; // Degrees of tolerance for alignment
     const ARC_RADIUS = 100;
     const CENTER_X = 150;
     const CENTER_Y = 150;
@@ -31,7 +31,7 @@ const GyroFocus = ({ setActiveComponent }) => {
 
     // Calculate position on arc
     const calculateArcPosition = (angle) => {
-        const radians = (angle + 90) * (Math.PI / 180);
+        const radians = (angle - 90) * (Math.PI / 180);
         return {
             x: CENTER_X + ARC_RADIUS * Math.cos(radians),
             y: CENTER_Y + ARC_RADIUS * Math.sin(radians)
@@ -82,20 +82,20 @@ const GyroFocus = ({ setActiveComponent }) => {
                         strokeWidth="4"
                     />
                     
+                    {/* Target Circle */}
+                    <circle
+                        cx={calculateArcPosition(targetPosition).x}
+                        cy={calculateArcPosition(targetPosition).y}
+                        r="15"
+                        fill="#F56565"
+                    />
+
                     {/* Player Circle */}
                     <circle
                         cx={calculateArcPosition(playerPosition).x}
                         cy={calculateArcPosition(playerPosition).y}
                         r="10"
                         fill={isAligned ? "#48BB78" : "#4299E1"}
-                    />
-                    
-                    {/* Target Circle */}
-                    <circle
-                        cx={calculateArcPosition(targetPosition).x}
-                        cy={calculateArcPosition(targetPosition).y}
-                        r="10"
-                        fill="#F56565"
                     />
                 </svg>
             </div>

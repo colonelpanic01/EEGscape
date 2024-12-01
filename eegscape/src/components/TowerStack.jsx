@@ -3,8 +3,8 @@ import useReceiveEeg from "../hooks/useReceiveEeg";
 import { useNavigate } from "react-router";
 import useLocalStorage from "use-local-storage";
 
-const DEFAULT_WIDTH = 120;
-const DEFAULT_HEIGHT = 120;
+const DEFAULT_WIDTH = 200;
+const DEFAULT_HEIGHT = 100;
 const SPEED_INCREMENT = 0.1;
 const STACK_HEIGHT_TO_OFFSET_THRESHOLD = 3;
 const INITIAL_SPEED_MULTIPLIER = 4;
@@ -59,8 +59,8 @@ const TowerStack = () => {
         let newPosition = prev.position + prev.direction * speedMultiplier;
         const containerWidth = gameRef.current?.offsetWidth || 400;
         if (
-          newPosition <= -containerWidth / 2 ||
-          newPosition + prev.width >= containerWidth / 2
+          newPosition <= -containerWidth / 3 ||
+          newPosition + prev.width >= containerWidth / 3
         ) {
           return { ...prev, direction: -prev.direction };
         }
@@ -142,26 +142,39 @@ const TowerStack = () => {
 
   nod.useNodBottom(() => {
     if (!gameOver) {
-      return;
+      handleBlockDrop();
     }
-
-    handlePlayAgain();
+    else {
+      handlePlayAgain();
+    }
   });
 
   nod.useNodLeft(() => {
     if (!gameOver) {
       return;
     }
-
-    navigate("/");
+    else {
+      const handleMenuReturn = () => {
+        if (setActiveComponent) {
+          setActiveComponent("menu");
+        }
+      };
+      handleMenuReturn();
+    }
   });
 
   nod.useNodRight(() => {
     if (!gameOver) {
       return;
     }
-
-    navigate("/");
+    else {
+      const handleMenuReturn = () => {
+        if (setActiveComponent) {
+          setActiveComponent("menu");
+        }
+      };
+      handleMenuReturn();
+    }
   });
 
   return (
@@ -187,16 +200,14 @@ const TowerStack = () => {
         {/* The falling block */}
         {!gameOver && (
           <div
-            className={`absolute bg-green-500 ${
-              isFalling ? "" : "invisible transition-transform"
-            }`}
+            className={`absolute bg-green-500 ${isFalling ? "" : "invisible transition-transform"
+              }`}
             style={{
               transitionDuration: FALLING_DURATION,
               bottom: (blocks.length + 1) * DEFAULT_HEIGHT,
               left: "50%",
-              transform: `translate(calc(${fallingBlock.position}px), ${
-                heightOffset + (isFalling ? DEFAULT_HEIGHT : 0)
-              }px)`,
+              transform: `translate(calc(${fallingBlock.position}px), ${heightOffset + (isFalling ? DEFAULT_HEIGHT : 0)
+                }px)`,
               width: `${fallingBlock.width}px`,
               height: `${DEFAULT_HEIGHT}px`,
             }}
