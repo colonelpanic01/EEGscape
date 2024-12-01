@@ -21,7 +21,7 @@ const DEFAULT_FALLING_BLOCK = {
   position: 0,
 };
 
-const TowerStackCore = () => {
+const TowerStack = () => {
   const [blocks, setBlocks] = useState([{ width: DEFAULT_WIDTH, position: 0 }]);
   const [highScore, setHighScore] = useLocalStorage(
     "eegscape:tower-stack-high-score",
@@ -238,4 +238,4 @@ const TowerStackCore = () => {
   );
 };
 
-export default TowerStackCore;
+export default TowerStack;

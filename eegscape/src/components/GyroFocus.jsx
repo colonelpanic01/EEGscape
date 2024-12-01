@@ -116,7 +116,7 @@ const GyroFocus = ({ setActiveComponent }) => {
                     Confirm
                 </button>
                 <button
-                    onClick={() => setActiveComponent(null)}
+                    onClick={() => setActiveComponent("menu")}
                     className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
                 >
                     Exit Game
