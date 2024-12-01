@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Welcome from "../components/Welcome";
 import Menu from "../components/Menu";
 
 function Home() {
