@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { EEGProvider, useEEG } from "../context/EEGContext";
+import { useEEG } from "../context/EEGContext";
 import dispatchEeg from "../lib/dispatchEeg";
 
 function EEGEmitter() {
