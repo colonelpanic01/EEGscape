@@ -31,6 +31,11 @@ const dispatchEeg = {
     });
     window.dispatchEvent(customEvent);
   },
+
+  blink: () => {
+    const customEvent = new CustomEvent(EEG_EVENT_CODES.blink, {});
+    window.dispatchEvent(customEvent);
+  },
 };
 
 export default dispatchEeg;
