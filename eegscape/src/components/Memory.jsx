@@ -25,7 +25,6 @@ const Memory = ({ setActiveComponent }) => {
   const [gameOver, setGameOver] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
   const { nod } = useReceiveEeg();
-  const navigate = useNavigate();
   const [highScore, setHighScore] = useLocalStorage(
     "eegscape:memory-high-score",
     0
@@ -307,7 +306,7 @@ const Memory = ({ setActiveComponent }) => {
                 </button>
                 <button
                   className="flex items-center justify-center gap-2 text-left w-full pr-2"
-                  onClick={() => navigate("/")}
+                  onClick={() => setActiveComponent("menu")}
                 >
                   <img className="w-16 h-16" src={nodLeftWhite} />
                   Shake your head left or right to return to the menu.
