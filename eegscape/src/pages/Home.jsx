@@ -11,8 +11,8 @@ function Home() {
 
   return (
     <div>
-      <Menu />
-      {/* {showMenu ? <Menu /> : <Welcome onContinue={handleContinue} />} */}
+      {/* <Menu /> */}
+      {showMenu ? <Menu /> : <Welcome onContinue={handleContinue} />}
     </div>
   );
 }
