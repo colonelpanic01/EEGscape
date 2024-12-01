@@ -9,27 +9,26 @@ const GyroFocus = ({ setActiveComponent }) => {
     const [score, setScore] = useState(0);
     const [isAligned, setIsAligned] = useState(false);
     const [alignmentStartTime, setAlignmentStartTime] = useState(null);
-    const [concentrationLevel, setConcentrationLevel] = useState(0); // Ranges from 0 to 100
+    const [concentrationLevel, setConcentrationLevel] = useState(0);
 
     // Constants for game mechanics
-    const ALIGNMENT_THRESHOLD = 7; // Degrees of tolerance for alignment
-    const ARC_RADIUS = 100;
-    const CENTER_X = 150;
-    const CENTER_Y = 150;
+    const ALIGNMENT_THRESHOLD = 7;
+    const ARC_RADIUS = 150; // Increased for a larger display
+    const CENTER_X = 200;   // Adjusted to match increased size
+    const CENTER_Y = 200;
 
     // Convert pitch to position on arc (assuming pitch ranges from -90 to 90)
     const pitchToPosition = useCallback((pitch) => {
-        // Clamp pitch between -90 and 90 degrees
         const clampedPitch = Math.max(-90, Math.min(90, pitch));
         return clampedPitch;
     }, []);
 
     // Generate random position on arc
     const generateNewTarget = useCallback(() => {
-        const newPosition = Math.random() * 180 - 90; // Random position between -90 and 90
+        const newPosition = Math.random() * 180 - 90;
         setTargetPosition(newPosition);
         setIsAligned(false);
-        setConcentrationLevel(0); // Reset concentration level
+        setConcentrationLevel(0);
     }, []);
 
     // Calculate position on arc
@@ -37,7 +36,7 @@ const GyroFocus = ({ setActiveComponent }) => {
         const radians = (angle - 90) * (Math.PI / 180);
         return {
             x: CENTER_X + ARC_RADIUS * Math.cos(radians),
-            y: CENTER_Y + ARC_RADIUS * Math.sin(radians)
+            y: CENTER_Y + ARC_RADIUS * Math.sin(radians),
         };
     };
 
@@ -52,7 +51,7 @@ const GyroFocus = ({ setActiveComponent }) => {
 
             interval = setInterval(() => {
                 const elapsedTime = (Date.now() - alignmentStartTime) / 1000;
-                const newConcentrationLevel = Math.min(elapsedTime / 3 * 100, 100); // Max at 100%
+                const newConcentrationLevel = Math.min((elapsedTime / 3) * 100, 100);
                 setConcentrationLevel(newConcentrationLevel);
 
                 if (elapsedTime >= 3) {
@@ -81,11 +80,11 @@ const GyroFocus = ({ setActiveComponent }) => {
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-            <div className="relative w-96 h-96">
+            <div className="relative w-[400px] h-[400px] flex justify-center items-center">
                 {/* Background Arc */}
-                <svg className="absolute top-0 left-0" width="300" height="300" viewBox="0 0 300 300">
+                <svg className="absolute" width="400" height="400" viewBox="0 0 400 400">
                     <path
-                        d="M 50 150 A 100 100 0 0 1 250 150"
+                        d="M 50 200 A 150 150 0 0 1 350 200"
                         fill="none"
                         stroke="#CBD5E0"
                         strokeWidth="4"
@@ -95,7 +94,7 @@ const GyroFocus = ({ setActiveComponent }) => {
                     <circle
                         cx={calculateArcPosition(targetPosition).x}
                         cy={calculateArcPosition(targetPosition).y}
-                        r="15"
+                        r="20"
                         fill="#F56565"
                     />
 
@@ -103,28 +102,20 @@ const GyroFocus = ({ setActiveComponent }) => {
                     <circle
                         cx={calculateArcPosition(playerPosition).x}
                         cy={calculateArcPosition(playerPosition).y}
-                        r={10 + (concentrationLevel / 10)} // Radius grows with concentration
-                        fill={`rgba(72, 187, 120, ${0.4 + concentrationLevel / 100})`} // Darker with concentration
+                        r={15 + concentrationLevel / 10}
+                        fill={`rgba(72, 187, 120, ${0.4 + concentrationLevel / 100})`}
                     />
                 </svg>
             </div>
 
             <div className="mt-8 space-y-4 text-center">
-                <p className="text-2xl font-bold">Score: {score}</p>
-                <p className="text-lg">
+                <p className="text-2xl text-gray-700 font-bold">Score: {score}</p>
+                <p className="text-lg text-gray-600">
                     {isAligned
                         ? `Concentration: ${Math.floor(concentrationLevel)}%`
                         : "Align the circles by tilting your head"}
                 </p>
-                <button
-                    onClick={() => isAligned && setScore((prev) => prev + 1)}
-                    className={`py-2 px-4 rounded ${
-                        isAligned ? "bg-green-500 hover:bg-green-700" : "bg-gray-400"
-                    } text-white mr-4`}
-                    disabled={!isAligned}
-                >
-                    Confirm
-                </button>
+
                 <button
                     onClick={() => setActiveComponent("menu")}
                     className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
