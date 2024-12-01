@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MuseClient, zipSamples } from "muse-js";
-import { epoch, fft, powerByBand } from "@neurosity/pipes";
+import { epoch, fft, powerByBand, bandpassFilter } from "@neurosity/pipes";
 import { Line } from "react-chartjs-2";
+import { bandpass } from "./bandpass";
 import "chart.js/auto";
 import * as THREE from "three";
 
@@ -23,6 +24,27 @@ export default function MuseConnectPage() {
       { label: "Gamma", borderColor: "#9966FF", data: [], fill: false },
     ],
   });
+
+    // Chart for filtered Channel 3
+    const [filteredChartData, setFilteredChartData] = useState({
+      labels: [],
+      datasets: [
+        {
+          label: "Filtered Channel 3",
+          borderColor: "#36A2EB",
+          data: [],
+          fill: false,
+        },
+        {
+          
+        }
+      ],
+    });
+
+    // Variables for uMeans and uVrms calculations
+    const uMeans = useRef(0);
+    const uVrms = useRef(0);
+  
 
   // details for head mapping in 3d space (as cube)
   const [yawDegrees, setYawDegrees] = useState(0);
@@ -79,6 +101,24 @@ export default function MuseConnectPage() {
 
   const museClientRef = useRef(null);
 
+  const [kMeansCentroids, setKMeansCentroids] = useState([]);
+  // Initialize K-Means
+  const k = 2; // Two clusters: Relaxation and Concentration
+  useEffect(() => {
+    // Initial dummy centroids
+    const initialCentroids = [
+      // delta (0.5–4 Hz)
+      // theta (4-8 hz)
+      // alpha (8-13 hz)
+      // beta (13-30 hz)
+      // gamma (30-100 hz)
+      [10, 4.5, 3.2, 2.0, 1.07], // relaxation
+      [35, 21, 5.5, 1.8, 0.98], // concentration
+
+    ];
+    setKMeansCentroids(initialCentroids);
+  }, []);
+
   const connectToMuse = async () => {
     try {
       setStatus("Connecting...");
@@ -87,6 +127,9 @@ export default function MuseConnectPage() {
       await museClient.start();
       museClientRef.current = museClient;
       setStatus("Connected");
+
+      // Initialize bandpass filter for Channel 3
+      const bandpassFilter = bandpass(256, 0.1, 50); // Sampling rate: 256 Hz, Passband: 1-30 Hz
 
       // yippee time to subscribe to accelerometer data
       museClient.accelerometerData.subscribe((data) => {
@@ -123,13 +166,14 @@ export default function MuseConnectPage() {
           setYawDegrees(yawDegrees.toFixed(2));
           setPitchDegrees(pitchDegrees.toFixed(2));
         } else {
-          console.error("ruh ro, error in the accelommeter data data:", data);
+          console.error("ruh ro, error in the accelommeter data:", data);
         }
       });
       // obtain eeg readings
       zipSamples(museClient.eegReadings)
         .pipe(
-          epoch({ duration: 1024, interval: 250, samplingRate: 256 }),
+          epoch({ duration: 1024, interval: 125, samplingRate: 256 }),
+          //bandpassFilter({ cutoffFrequencies: [1, 50], samplingRate: 256 }),
           fft({ bins: 256 }),
           powerByBand()
         ) // subscribe to band and channel from the stream
@@ -156,29 +200,84 @@ export default function MuseConnectPage() {
 
             return { labels: newLabels, datasets: newDatasets };
           });
+          classifyWithKMeans(bandData);
 
-          // concentration and relaxation metrics
-          calculateMetrics(bandData);
+          //concentration and relaxation metrics
+          //calculateMetrics(bandData);
         });
+        // Subscribe to raw EEG data for Channel 3 filtering
+        zipSamples(museClient.eegReadings)
+        .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+        .subscribe((data) => {
+        const channel3Data = data.data[3]; // Get Channel 3 values
+        const filteredData = channel3Data.map((value) => bandpassFilter(value));
+        
+        // Calculate uVrms for each timestamp
+        filteredData.forEach((amplitude) => {
+          uMeans.current = 0.995 * uMeans.current + 0.005 * amplitude;
+            uVrms.current = Math.sqrt(
+              0.995 * uVrms.current ** 2 + 0.005 * (amplitude - uMeans.current) ** 2
+            );
+          });
+
+          const currentTime = new Date().toLocaleTimeString();
+
+          // Update the filtered uVrms chart
+          setFilteredChartData((prevData) => {
+            const newLabels = [...prevData.labels, currentTime];
+            if (newLabels.length > 50) newLabels.shift();
+
+            const newData = [...prevData.datasets[0].data, uVrms.current];
+            if (newData.length > 50) newData.shift();
+
+            return {
+              labels: newLabels,
+              datasets: [{ ...prevData.datasets[0], data: newData }],
+            };
+          });
+        });
+
     } catch (error) {
       console.error("Error connecting to Muse:", error);
       setStatus("Connection Failed");
     }
   };
 
-  const calculateMetrics = (bandData) => {
-    const [delta, theta, alpha, beta, gamma] = bandData;
-
-    const relaxation = alpha / (delta || 1); // Avoid division by zero
-    const fatigue = (theta + alpha) / (beta || 1);
-    const concentration = beta / (theta || 1);
-
-    setMetrics({ relaxation, fatigue, concentration });
+  const euclideanDistance = (point1, point2) => {
+    return Math.sqrt(
+      point1.reduce((sum, val, index) => sum + Math.pow(val - point2[index], 2), 0)
+    );
   };
+
+  const classifyWithKMeans = (bandData) => {
+    const distances = kMeansCentroids.map((centroid) =>
+      euclideanDistance(bandData, centroid)
+    );
+    const clusterIndex = distances.indexOf(Math.min(...distances));
+
+    const metricsUpdate = clusterIndex === 0
+      ? { relaxation: 1, concentration: 0 }
+      : { relaxation: 0, concentration: 1 };
+
+    setMetrics(metricsUpdate);
+  };
+
+
+  // const calculateMetrics = (bandData) => {
+  //   const [delta, theta, alpha, beta, gamma] = bandData;
+
+  //   const relaxation = alpha / (delta || 1); // Avoid division by zero
+  //   const fatigue = (theta + alpha) / (beta || 1);
+  //   const concentration = beta / (theta || 1);
+
+  //   setMetrics({ relaxation, fatigue, concentration });
+  // };
 
   const handleChannelChange = (e) => {
     setSelectedChannel(Number(e.target.value));
   };
+
+  const uVrmsValue = uVrms.current; 
 
   return (
     <>
@@ -208,8 +307,55 @@ export default function MuseConnectPage() {
           </select>
         </div>
 
-        {/* Metrics Display */}
-        <div
+        {/* Filtered Channel 3 Chart */}
+        <div style={{ width: "500px", height: "400px" }}>
+          <Line
+            data={filteredChartData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: "Time" } },
+                y: {
+                  title: { display: true, text: "UVrms" },
+                  min: -200, // Set the minimum value of the Y-axis
+                  max: 200,  // Set the maximum value of the Y-axis
+                },
+              },
+            }}
+          />
+        </div>
+
+        <div style={{ marginTop: "20px", fontSize: "20px", textAlign: "center" }}>
+        {uVrmsValue > 20 ? (
+          <p style={{ color: "green", fontWeight: "bold" }}>
+            Focused state of mind
+          </p>
+        ) : uVrmsValue <= 20 ? (
+          <p style={{ color: "blue", fontWeight: "bold" }}>
+            Relaxed state of mind
+          </p>
+        ) : null}
+      </div>
+
+
+        {/* EEG Graph */}
+        <div style={{ width: "500px", height: "400px" }}>
+          <Line
+            data={chartData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: "Time" } },
+                y: { title: { display: true, text: "Band Values" } },
+              },
+            }}
+          />
+        </div>
+    
+          {/* Metrics Display */}
+          <div
           style={{
             marginBottom: "20px",
             display: "flex",
@@ -235,21 +381,6 @@ export default function MuseConnectPage() {
               <span style={{ color: "blue", fontWeight: "bold" }}>Relaxed</span>
             )}
           </div>
-        </div>
-
-        {/* EEG Graph */}
-        <div style={{ width: "500px", height: "400px" }}>
-          <Line
-            data={chartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: { title: { display: true, text: "Time" } },
-                y: { title: { display: true, text: "Band Values" } },
-              },
-            }}
-          />
         </div>
 
         {/* Head tracking stuff */}

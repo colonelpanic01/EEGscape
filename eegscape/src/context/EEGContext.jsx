@@ -66,6 +66,7 @@ export const EEGProvider = ({ children }) => {
 
           calculateMetrics(bandData);
         });
+        
     } catch (error) {
       console.error("Error connecting to Muse:", error);
       setStatus("Connection Failed");
