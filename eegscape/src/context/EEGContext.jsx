@@ -2,7 +2,6 @@ import React, {
   createContext,
   useState,
   useRef,
-  useEffect,
   useContext,
 } from "react";
 import { MuseClient, zipSamples } from "muse-js";
