@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
-import { useNavigate } from "react-router";
 import useLocalStorage from "use-local-storage";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBrain, faEye, faRepeat } from "@fortawesome/free-solid-svg-icons";
