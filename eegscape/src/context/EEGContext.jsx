@@ -210,6 +210,7 @@ export const EEGProvider = ({ children }) => {
     isConcentrate,
     isBlinking,
     blinkVoltage,
+    museClient: museClientRef.current,
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;
