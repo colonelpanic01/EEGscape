@@ -36,8 +36,14 @@ function EEGEmitter() {
     // Avoid dispatching multiple actions simultaneously
     if (dispatchState) return; // Prevent if an action is already in progress
 
-    if (isConcentrate) dispatchEeg.concentration.focus();
-    if (!isConcentrate) dispatchEeg.concentration.relax();
+    if (isConcentrate()) {
+      console.log("concentrate");
+      dispatchEeg.concentration.focus();
+    }
+    if (!isConcentrate()) {
+      console.log("relaxed");
+      dispatchEeg.concentration.relax();
+    }
 
     // Handle blinking with throttling
     if (isBlinking() && allowBlink) {
@@ -62,7 +68,7 @@ function EEGEmitter() {
       dispatchEeg.nod.bottom();
       setDispatchState("bottom");
     }
-  }, [yawOffset, pitchOffset, dispatchState, defaultPosition]); // dependencies include offsets and dispatch state
+  }, [yawOffset, pitchOffset, dispatchState, defaultPosition, isConcentrate]); // dependencies include offsets and dispatch state
 
   // Reset dispatchState when the conditions are no longer met
   useEffect(() => {
