@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { MuseClient, zipSamples } from "muse-js";
 import { epoch, fft, powerByBand } from "@neurosity/pipes";
+import { bandpass } from "../inputs/bandpass";
 import * as THREE from "three";
 
 // Create the context
@@ -34,10 +35,13 @@ export const EEGProvider = ({ children }) => {
       { label: "Alpha", borderColor: "#FFCE56", data: [], fill: false },
       { label: "Beta", borderColor: "#4BC0C0", data: [], fill: false },
       { label: "Gamma", borderColor: "#9966FF", data: [], fill: false },
+      { label: "Filtered Channel 3", borderColor: "#EB6C36", data: [], fill: false },
     ],
   });
 
   const museClientRef = useRef(null);
+  const uVrms = useRef(0); // reference to store uVrms value
+  const uMeans = useRef(0);
 
   const connectToMuse = async () => {
     try {
@@ -47,6 +51,9 @@ export const EEGProvider = ({ children }) => {
       await museClient.start();
       museClientRef.current = museClient;
       setStatus("Connected");
+
+      // Initialize bandpass filter for Channel 3
+      const bandpassFilter = bandpass(256, 0.1, 50);
 
       museClient.accelerometerData.subscribe((data) => {
         if (data && Array.isArray(data.samples) && data.samples.length > 0) {
@@ -71,11 +78,11 @@ export const EEGProvider = ({ children }) => {
         .subscribe((data) => {
           const currentTime = new Date().toLocaleTimeString();
           const bandData = [
-            data.delta[0], // example for channel 0, you can change the logic for selecting channels
-            data.theta[0],
-            data.alpha[0],
-            data.beta[0],
-            data.gamma[0],
+            data.delta[3], // example for channel 3, you can change the logic for selecting channels
+            data.theta[3],
+            data.alpha[3],
+            data.beta[3],
+            data.gamma[3],
           ];
 
           // update the chart data
@@ -92,23 +99,45 @@ export const EEGProvider = ({ children }) => {
             return { labels: newLabels, datasets: newDatasets };
           });
 
-          calculateMetrics(bandData);
+          //calculateMetrics(bandData);
+      });
+      
+      // Subscribe to raw EEG data for Channel 3 filtering
+      zipSamples(museClient.eegReadings)
+      .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+      .subscribe((data) => {
+      const channel3Data = data.data[3]; // Get Channel 3 values
+      const filteredData = channel3Data.map((value) => bandpassFilter(value));
+      
+      // Calculate uVrms for each timestamp
+      filteredData.forEach((amplitude) => {
+        uMeans.current = 0.995 * uMeans.current + 0.005 * amplitude;
+          uVrms.current = Math.sqrt(
+            0.995 * uVrms.current ** 2 + 0.005 * (amplitude - uMeans.current) ** 2
+          );
         });
-        
+
+        // Update the filtered uVrms chart
+        setFilteredChartData((prevData) => {
+          const newLabels = [...prevData.labels, currentTime];
+          if (newLabels.length > 50) newLabels.shift();
+
+          const newData = [...prevData.datasets[0].data, uVrms.current];
+          if (newData.length > 50) newData.shift();
+
+          return {
+            labels: newLabels,
+            datasets: [{ ...prevData.datasets[0], data: newData }],
+          };
+        });
+      });
+
     } catch (error) {
       console.error("Error connecting to Muse:", error);
       setStatus("Connection Failed");
     }
   };
 
-  const calculateMetrics = (bandData) => {
-    const [delta, theta, alpha, beta, gamma] = bandData;
-    const relaxation = alpha / (delta || 1);
-    const fatigue = (theta + alpha) / (beta || 1);
-    const concentration = beta / (theta || 1);
-
-    setMetrics({ relaxation, fatigue, concentration });
-  };
 
   const configureDefaultPosition = () => {
     if (museClientRef.current) {
@@ -141,6 +170,10 @@ export const EEGProvider = ({ children }) => {
     }
   };
 
+  const isConcentrate  = () => {
+    return uVrms.current > 20;
+  };
+
   const value = {
     status,
     metrics,
@@ -150,6 +183,7 @@ export const EEGProvider = ({ children }) => {
     configureDefaultPosition,
     defaultPosition,
     chartData,
+    isConcentrate,
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;
