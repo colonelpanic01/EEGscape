@@ -26,6 +26,10 @@ export const EEGProvider = ({ children }) => {
     yaw: yawDegrees,
     pitch: pitchDegrees,
   });
+  const [defaultPositionAngle, setDefaultPositionAngle] = useState({
+    yaw: 0,
+    pitch: 0,
+  });
   const [chartData, setChartData] = useState({
     labels: [], // for time points
     datasets: [
@@ -183,6 +187,32 @@ export const EEGProvider = ({ children }) => {
     }
   };
 
+  const configureDefaultPositionAngles = () => {
+    if (museClientRef.current) {
+      const subscription = museClientRef.current.accelerometerData.subscribe(
+        (data) => {
+          if (data && Array.isArray(data.samples) && data.samples.length > 0) {
+            const { x, y, z } = data.samples[0];
+            const gVector = new THREE.Vector3(x, y, z);
+            const yawAngle = Math.atan2(gVector.x, gVector.z);
+            const pitchAngle = Math.atan2(gVector.y, gVector.z);
+
+            setDefaultPositionAngle({ yaw: yawAngle, pitch: pitchAngle }); // Set the default position with calculated values
+
+            setStatus("Calibrated");
+
+            // Unsubscribe after capturing the first snapshot
+            subscription.unsubscribe();
+          } else {
+            console.error("Error in accelerometer data:", data);
+          }
+        }
+      );
+    } else {
+      console.error("MuseClient instance is not connected yet.");
+    }
+  };
+
   const isConcentrate = () => {
     return uVrms.current > 20;
   };
@@ -210,6 +240,8 @@ export const EEGProvider = ({ children }) => {
     isBlinking,
     blinkVoltage,
     museClient: museClientRef.current,
+    defaultPositionAngle,
+    configureDefaultPositionAngles,
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;

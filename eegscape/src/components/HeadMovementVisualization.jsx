@@ -6,7 +6,13 @@ const HeadMovementVisualization = () => {
   const sceneRef = useRef(null);
   const objectRef = useRef(null);
   const rendererRef = useRef(null);
-  const { yawDegrees, pitchDegrees, museClient } = useEEG();
+  const {
+    yawDegrees,
+    pitchDegrees,
+    museClient,
+    defaultPositionAngle,
+    defaultPosition,
+  } = useEEG();
 
   useEffect(() => {
     // Clean up the previous scene if it exists
@@ -65,12 +71,15 @@ const HeadMovementVisualization = () => {
           const gVector = new THREE.Vector3(x, y, z);
           const xAxis = new THREE.Vector3(0, 1, 0);
           const yAxis = new THREE.Vector3(1, 0, 0);
-          const yawAngle = Math.atan2(gVector.x, gVector.z);
+          const yawAngle =
+            Math.atan2(gVector.x, gVector.z) - defaultPositionAngle.yaw;
+          console.log("yawAngle", yawAngle);
           const yawRotation = new THREE.Quaternion().setFromAxisAngle(
             yAxis,
             yawAngle
           );
-          const pitchAngle = Math.atan2(gVector.y, gVector.z);
+          const pitchAngle =
+            Math.atan2(gVector.y, gVector.z) - defaultPositionAngle.pitch;
           const pitchRotation = new THREE.Quaternion().setFromAxisAngle(
             xAxis,
             pitchAngle
@@ -85,15 +94,19 @@ const HeadMovementVisualization = () => {
         }
       });
     }
-  }, [yawDegrees, pitchDegrees]);
+  }, [yawDegrees, pitchDegrees, defaultPositionAngle]);
+  console.log("CURRRENT YAW:", );
+  console.log("DEFAULTTTTT YAW:", defaultPositionAngle.yaw);
 
   return (
     <div>
       <div ref={sceneRef} className="w-48 h-48" />
       <div className="text-white">
         <h3 className="font-bold">Head Movement Data:</h3>
-        <p>Right/Left Tilt: {pitchDegrees}°</p>
-        <p>Up/Down Tilt: {yawDegrees}°</p>
+        <p>
+          Right/Left Tilt: {Math.round(pitchDegrees - defaultPosition.pitch)}°
+        </p>
+        <p>Up/Down Tilt: {Math.round(yawDegrees - defaultPosition.yaw)}°</p>
       </div>
     </div>
   );

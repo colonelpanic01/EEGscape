@@ -5,11 +5,72 @@ import { Line } from "react-chartjs-2";
 import { bandpass } from "./bandpass";
 import "chart.js/auto";
 import * as THREE from "three";
-import { useEEG } from "../context/EEGContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+
+function chartOptions(min, max) {
+  return {
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: "Time",
+          color: "grey",
+        },
+        ticks: {
+          color: "grey",
+        },
+        border: {
+          color: "grey",
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "UVrms",
+        },
+        min: min,
+        max: max,
+        ticks: {
+          color: "grey",
+        },
+        border: {
+          color: "grey",
+        },
+      },
+    },
+    elements: {
+      line: {
+        borderColor: "grey",
+        borderWidth: 1,
+      },
+      point: {
+        radius: 0,
+        borderColor: "grey",
+        backgroundColor: "grey",
+      },
+    },
+    animation: {
+      duration: 0,
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: "grey",
+        },
+      },
+    },
+  };
+}
 
 export default function MuseConnectPage() {
-  const {blinkVoltage} = useEEG();
+  const [defaultPosition, setDefaultPosition] = useState({
+    yaw: 0,
+    pitch: 0,
+  });
   const [status, setStatus] = useState("Disconnected");
+  const isConnected = status !== "Disconnected" && status !== "Connecting...";
   const [selectedChannel, setSelectedChannel] = useState(0);
   const [metrics, setMetrics] = useState({
     concentration: 0,
@@ -27,37 +88,37 @@ export default function MuseConnectPage() {
     ],
   });
 
-    // Chart for filtered Channel 3
-    const [filteredChartData, setFilteredChartData] = useState({
-      labels: [],
-      datasets: [
-        {
-          label: "Filtered Channel 3",
-          borderColor: "#36A2EB",
-          data: [],
-          fill: false,
-        },
-      ],
-    });
+  // Chart for filtered Channel 3
+  const [filteredChartData, setFilteredChartData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: "Active/Calm Data",
+        borderColor: "#36A2EB",
+        data: [],
+        fill: false,
+      },
+    ],
+  });
 
-    const [blinkChartData, setBlinkChartData] = useState({
-      labels: [],
-      datasets: [
-        {
-          label: "Blink Data",
-          borderColor: "#FFFFFF",
-          data: [],
-          fill: false,
-        },
-      ],
-    });
+  const [blinkChartData, setBlinkChartData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: "Blink Data",
+        borderColor: "#FFFFFF",
+        data: [],
+        fill: false,
+      },
+    ],
+  });
 
-    // Variables for uMeans and uVrms calculations
-    const uMeans = useRef(0);
-    const uVrms = useRef(0);
+  // Variables for uMeans and uVrms calculations
+  const uMeans = useRef(0);
+  const uVrms = useRef(0);
 
-    const blinkuVrms = useRef(0);
-    const blinkuMeans = useRef(0);
+  const blinkuVrms = useRef(0);
+  const blinkuMeans = useRef(0);
 
   // details for head mapping in 3d space (as cube)
   const [yawDegrees, setYawDegrees] = useState(0);
@@ -67,7 +128,6 @@ export default function MuseConnectPage() {
   const rendererRef = useRef(null);
 
   useEffect(() => {
-
     if (sceneRef.current) {
       while (sceneRef.current.firstChild) {
         sceneRef.current.removeChild(sceneRef.current.firstChild);
@@ -90,7 +150,6 @@ export default function MuseConnectPage() {
     scene.add(cube);
     objectRef.current = cube;
     camera.position.z = 2;
-
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -127,7 +186,6 @@ export default function MuseConnectPage() {
       // gamma (30-100 hz)
       [10, 4.5, 3.2, 2.0, 1.07], // relaxation
       [35, 21, 5.5, 1.8, 0.98], // concentration
-
     ];
     setKMeansCentroids(initialCentroids);
   }, []);
@@ -145,47 +203,11 @@ export default function MuseConnectPage() {
       const bandpassFilter = bandpass(256, 0.1, 50); // Sampling rate: 256 Hz, Passband: 1-30 Hz
 
       // yippee time to subscribe to accelerometer data
-      museClient.accelerometerData.subscribe((data) => {
-        //console.log("Accelerometer data:", data);
-        if (data && Array.isArray(data.samples) && data.samples.length > 0) {
-          const { x, y, z } = data.samples[0];
 
-          // convert accelerometer data into a 3D vector and apply rotation to the cube to match head tilt
-          const gVector = new THREE.Vector3(x, y, z);
-          // for some reason the x and y values are flipped
-          const xAxis = new THREE.Vector3(0, 1, 0);
-          const yAxis = new THREE.Vector3(1, 0, 0);
-          // determine yaw and pitch and final rotation
-          const yawAngle = Math.atan2(gVector.x, gVector.z);
-          const yawRotation = new THREE.Quaternion().setFromAxisAngle(
-            yAxis,
-            yawAngle
-          );
-          const pitchAngle = Math.atan2(gVector.y, gVector.z);
-          const pitchRotation = new THREE.Quaternion().setFromAxisAngle(
-            xAxis,
-            pitchAngle
-          );
-          const finalRotation = yawRotation.multiply(pitchRotation);
-
-          // update the cubes rotation
-          if (objectRef.current) {
-            objectRef.current.quaternion.copy(finalRotation);
-          }
-
-          // update yaw and pitch degrees (radians to degrees)
-          const yawDegrees = THREE.MathUtils.radToDeg(yawAngle);
-          const pitchDegrees = THREE.MathUtils.radToDeg(pitchAngle);
-          setYawDegrees(yawDegrees.toFixed(2));
-          setPitchDegrees(pitchDegrees.toFixed(2));
-        } else {
-          console.error("ruh ro, error in the accelommeter data:", data);
-        }
-      });
       // obtain eeg readings
       zipSamples(museClient.eegReadings)
         .pipe(
-          epoch({ duration: 1024, interval: 125, samplingRate: 256 }),
+          epoch({ duration: 256, interval: 5, samplingRate: 256 }),
           //bandpassFilter({ cutoffFrequencies: [1, 50], samplingRate: 256 }),
           fft({ bins: 256 }),
           powerByBand()
@@ -218,28 +240,31 @@ export default function MuseConnectPage() {
           //concentration and relaxation metrics
           //calculateMetrics(bandData);
         });
-        // Subscribe to raw EEG data for Channel 3 filtering
-        zipSamples(museClient.eegReadings)
-        .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+      // Subscribe to raw EEG data for Channel 3 filtering
+      const peakWindow = 1;
+      zipSamples(museClient.eegReadings)
+        .pipe(epoch({ duration: 256, interval: 5, samplingRate: 256 }))
         .subscribe((data) => {
-        const blinkData = data.data[0]; 
+          const blinkData = data.data[0];
           const currentTime = new Date().toLocaleTimeString();
 
-          blinkData.forEach((amplitude) => {
-            blinkuMeans.current = 0.995 * blinkuMeans.current + 0.005 * amplitude;
-              blinkuMeans.current = Math.sqrt(
-                0.995 * blinkuMeans.current ** 2 + 0.005 * (amplitude - blinkuMeans.current) ** 2
-              );
-            });
+          blinkData.forEach((amplitude, index) => {
+            blinkuMeans.current =
+              0.995 * blinkuMeans.current + 0.005 * amplitude;
+            blinkuMeans.current = Math.sqrt(
+              0.995 * blinkuMeans.current ** 2 +
+                0.005 * (amplitude - blinkuMeans.current) ** 2
+            );
+          });
 
-            console.log("blinkuMeans.current", blinkuMeans.current);
+          // console.log("blinkuMeans.current", blinkuMeans.current);
           // Update the filtered uVrms chart
           setBlinkChartData((prevData) => {
             const newLabels = [...prevData.labels, currentTime];
-            if (newLabels.length > 50) newLabels.shift();
+            if (newLabels.length > 150) newLabels.shift();
 
             const newData = [...prevData.datasets[0].data, blinkuMeans.current];
-            if (newData.length > 50) newData.shift();
+            if (newData.length > 150) newData.shift();
 
             return {
               labels: newLabels,
@@ -248,17 +273,20 @@ export default function MuseConnectPage() {
           });
         });
 
-        zipSamples(museClient.eegReadings)
-        .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+      zipSamples(museClient.eegReadings)
+        .pipe(epoch({ duration: 256, interval: 5, samplingRate: 256 }))
         .subscribe((data) => {
-        const channel3Data = data.data[3]; // Get Channel 3 values
-        const filteredData = channel3Data.map((value) => bandpassFilter(value));
-        
-        // Calculate uVrms for each timestamp
-        filteredData.forEach((amplitude) => {
-          uMeans.current = 0.995 * uMeans.current + 0.005 * amplitude;
+          const channel3Data = data.data[3]; // Get Channel 3 values
+          const filteredData = channel3Data.map((value) =>
+            bandpassFilter(value)
+          );
+
+          // Calculate uVrms for each timestamp
+          filteredData.forEach((amplitude) => {
+            uMeans.current = 0.995 * uMeans.current + 0.005 * amplitude;
             uVrms.current = Math.sqrt(
-              0.995 * uVrms.current ** 2 + 0.005 * (amplitude - uMeans.current) ** 2
+              0.995 * uVrms.current ** 2 +
+                0.005 * (amplitude - uMeans.current) ** 2
             );
           });
 
@@ -278,29 +306,64 @@ export default function MuseConnectPage() {
             };
           });
         });
-        
-        // setBlinkChartData((prevData) => {
-        //   const newLabels = [...prevData.labels, currentTime];
-        //   if (newLabels.length > 50) newLabels.shift();
-
-        //   const newData = [...prevData.datasets[0].data, blinkuVrms.current];
-        //   if (newData.length > 50) newData.shift();
-
-        //   return {
-        //     labels: newLabels,
-        //     datasets: [{ ...prevData.datasets[0], data: newData }],
-        //   };
-        // });
-
     } catch (error) {
       console.error("Error connecting to Muse:", error);
       setStatus("Connection Failed");
     }
   };
 
+  useEffect(() => {
+    if (museClientRef.current) {
+      museClientRef.current.accelerometerData.subscribe((data) => {
+        //console.log("Accelerometer data:", data);
+        if (data && Array.isArray(data.samples) && data.samples.length > 0) {
+          const { x, y, z } = data.samples[0];
+
+          // convert accelerometer data into a 3D vector and apply rotation to the cube to match head tilt
+          const gVector = new THREE.Vector3(x, y, z);
+          // for some reason the x and y values are flipped
+          const xAxis = new THREE.Vector3(0, 1, 0);
+          const yAxis = new THREE.Vector3(1, 0, 0);
+          // determine yaw and pitch and final rotation
+
+          const yawAngle = Math.atan2(gVector.x, gVector.z);
+          console.log("YAW CURRENT", yawAngle);
+          console.log("DEFAULT:", defaultPosition.yaw);
+          const yawRotation = new THREE.Quaternion().setFromAxisAngle(
+            yAxis,
+            yawAngle
+          );
+          const pitchAngle =
+            Math.atan2(gVector.y, gVector.z) - defaultPosition.pitch;
+          const pitchRotation = new THREE.Quaternion().setFromAxisAngle(
+            xAxis,
+            pitchAngle
+          );
+          const finalRotation = yawRotation.multiply(pitchRotation);
+
+          // update the cubes rotation
+          if (objectRef.current) {
+            objectRef.current.quaternion.copy(finalRotation);
+          }
+
+          // update yaw and pitch degrees (radians to degrees)
+          const yawDegrees = THREE.MathUtils.radToDeg(yawAngle);
+          const pitchDegrees = THREE.MathUtils.radToDeg(pitchAngle);
+          setYawDegrees(yawDegrees.toFixed(2));
+          setPitchDegrees(pitchDegrees.toFixed(2));
+        } else {
+          console.error("ruh ro, error in the accelommeter data:", data);
+        }
+      });
+    }
+  }, [museClientRef]);
+
   const euclideanDistance = (point1, point2) => {
     return Math.sqrt(
-      point1.reduce((sum, val, index) => sum + Math.pow(val - point2[index], 2), 0)
+      point1.reduce(
+        (sum, val, index) => sum + Math.pow(val - point2[index], 2),
+        0
+      )
     );
   };
 
@@ -310,42 +373,76 @@ export default function MuseConnectPage() {
     );
     const clusterIndex = distances.indexOf(Math.min(...distances));
 
-    const metricsUpdate = clusterIndex === 0
-      ? { relaxation: 1, concentration: 0 }
-      : { relaxation: 0, concentration: 1 };
+    const metricsUpdate =
+      clusterIndex === 0
+        ? { relaxation: 1, concentration: 0 }
+        : { relaxation: 0, concentration: 1 };
 
     setMetrics(metricsUpdate);
   };
-
-
-  // const calculateMetrics = (bandData) => {
-  //   const [delta, theta, alpha, beta, gamma] = bandData;
-
-  //   const relaxation = alpha / (delta || 1); // Avoid division by zero
-  //   const fatigue = (theta + alpha) / (beta || 1);
-  //   const concentration = beta / (theta || 1);
-
-  //   setMetrics({ relaxation, fatigue, concentration });
-  // };
 
   const handleChannelChange = (e) => {
     setSelectedChannel(Number(e.target.value));
   };
 
-  const uVrmsValue = uVrms.current; 
+  const uVrmsValue = uVrms.current;
+
+  const configureDefaultPosition = () => {
+    if (museClientRef.current) {
+      const subscription = museClientRef.current.accelerometerData.subscribe(
+        (data) => {
+          if (data && Array.isArray(data.samples) && data.samples.length > 0) {
+            const { x, y, z } = data.samples[0];
+            const gVector = new THREE.Vector3(x, y, z);
+            const yawAngle = Math.atan2(gVector.x, gVector.z).toFixed(2);
+            const pitchAngle = Math.atan2(gVector.y, gVector.z).toFixed(2);
+            console.log("Setting default position:", yawAngle, pitchAngle);
+            setDefaultPosition({ yaw: yawAngle, pitch: pitchAngle }); // Set the default position with calculated values
+
+            setStatus("Calibrated");
+
+            // Unsubscribe after capturing the first snapshot
+            subscription.unsubscribe();
+          } else {
+            console.error("Error in accelerometer data:", data);
+          }
+        }
+      );
+    } else {
+      console.error("MuseClient instance is not connected yet.");
+    }
+  };
 
   return (
     <>
+      <h1 className="text-3xl font-bold mb-4">Visualize EEG Metrics</h1>
       <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-        <h1>EEGscape</h1>
-        <p>Status: {status}</p>
 
-        <button onClick={connectToMuse} style={{ marginBottom: "20px" }}>
-          Connect to Muse
-        </button>
+        <div className="flex flex-col mx-auto w-fit items-center gap-8 mb-8">
+          <button
+            onClick={connectToMuse}
+            className={`transition w-fit btn ${
+              isConnected ? "btn-disabled" : ""
+            } btn-primary`}
+          >
+            Connect your Muse Device
+            {isConnected && (
+              <FontAwesomeIcon
+                className="text-success text-lg"
+                icon={faCircleCheck}
+              />
+            )}
+          </button>
+          <button
+            onClick={configureDefaultPosition}
+            className="transition w-fit btn"
+          >
+            Calibrate Your Position
+          </button>
+        </div>
 
         {/* Dropdown for channel selection */}
-        <div style={{ marginBottom: "20px" }}>
+        <div className="mb-8 bg-secondary w-fit mx-auto btn rounded-lg">
           <label htmlFor="channel-select" style={{ marginRight: "10px" }}>
             Select Channel:
           </label>
@@ -353,6 +450,7 @@ export default function MuseConnectPage() {
             id="channel-select"
             value={selectedChannel}
             onChange={handleChannelChange}
+            className="bg-secondary"
             style={{ padding: "5px", fontSize: "16px" }}
           >
             <option value="0">Channel 0</option>
@@ -362,74 +460,34 @@ export default function MuseConnectPage() {
           </select>
         </div>
 
-        {/* Filtered Channel 3 Chart */}
-        <div style={{ width: "500px", height: "400px" }}>
-          <Line
-            data={filteredChartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: { title: { display: true, text: "Time" } },
-                y: {
-                  title: { display: true, text: "UVrms" },
-                  min: -200, // Set the minimum value of the Y-axis
-                  max: 200,  // Set the maximum value of the Y-axis
-                },
-              },
-            }}
-          />
-        </div>
-
-
-        <div style={{ width: "500px", height: "400px" }}>
-          <Line
-            data={blinkChartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: { title: { display: true, text: "Time" } },
-                y: {
-                  title: { display: true, text: "UVrms" },
-                  min: -200, // Set the minimum value of the Y-axis
-                  max: 200,  // Set the maximum value of the Y-axis
-                },
-              },
-            }}
-          />
-        </div>
-
-        <div style={{ marginTop: "20px", fontSize: "20px", textAlign: "center" }}>
-        {uVrmsValue > 20 ? (
-          <p style={{ color: "green", fontWeight: "bold" }}>
-            Focused state of mind
-          </p>
-        ) : uVrmsValue <= 20 ? (
-          <p style={{ color: "blue", fontWeight: "bold" }}>
-            Relaxed state of mind
-          </p>
-        ) : null}
-      </div>
-
-
         {/* EEG Graph */}
-        <div style={{ width: "500px", height: "400px" }}>
-          <Line
-            data={chartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: { title: { display: true, text: "Time" } },
-                y: { title: { display: true, text: "Band Values" } },
-              },
-            }}
-          />
+        <div className="w-full h-64">
+          <Line data={chartData} options={chartOptions(0, 50)} />
         </div>
-    
-          {/* Metrics Display */}
-          <div
+
+        {/* Filtered Channel 3 Chart */}
+        <div className="w-full h-64">
+          <Line data={filteredChartData} options={chartOptions(0, 150)} />
+        </div>
+
+        <div className="w-full h-64">
+          <Line data={blinkChartData} options={chartOptions(0, 200)} />
+        </div>
+
+        {/* <div className="w-full h-64">
+          {uVrmsValue > 20 ? (
+            <p style={{ color: "green", fontWeight: "bold" }}>
+              Focused state of mind
+            </p>
+          ) : uVrmsValue <= 20 ? (
+            <p style={{ color: "blue", fontWeight: "bold" }}>
+              Relaxed state of mind
+            </p>
+          ) : null}
+        </div> */}
+
+        {/* Metrics Display */}
+        <div
           style={{
             marginBottom: "20px",
             display: "flex",
@@ -458,7 +516,10 @@ export default function MuseConnectPage() {
         </div>
 
         {/* Head tracking stuff */}
-        <div>
+
+        <div className="w-48 mx-auto">
+          <div ref={sceneRef} className="" />
+
           <h3>Head Movement Data:</h3>
           <p>Right/Left Tilt: {pitchDegrees}°</p>
           <p>Up/Down Tilt: {yawDegrees}°</p>
@@ -466,7 +527,6 @@ export default function MuseConnectPage() {
         <p>Up/Down Tilt: {pitchDegrees}°</p> */}
         </div>
       </div>
-      <div ref={sceneRef} className="absolute top-0 right-0 bg-slate-800" />
     </>
   );
 }
