@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import { useNavigate } from "react-router";
 import useLocalStorage from "use-local-storage";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBrain, faEye, faRepeat } from "@fortawesome/free-solid-svg-icons";
+import nodLeft from "./../assets/nodLeft-white.png";
 
 const Memory = ({ setActiveComponent }) => {
   // Game states
@@ -18,26 +21,31 @@ const Memory = ({ setActiveComponent }) => {
     "eegscape:memory-high-score",
     0
   );
+  const [isPlayerSequenceCorrect, setIsPlayerSequenceCorrect] =
+    useState(undefined);
 
   // Constants
   const BUTTONS = [
     {
       id: 1,
       color: "bg-red-500",
-      activeColor: "bg-red-300",
-      pressedColor: "bg-red-200",
+      activeColor: "bg-red-500",
+      activeGlowColor: "shadow-red-500",
+      activeGlow: "shadow-xl",
     },
     {
       id: 2,
       color: "bg-blue-500",
-      activeColor: "bg-blue-300",
-      pressedColor: "bg-blue-200",
+      activeColor: "bg-blue-500",
+      activeGlowColor: "shadow-blue-500",
+      activeGlow: "shadow-xl",
     },
     {
       id: 3,
       color: "bg-green-500",
-      activeColor: "bg-green-300",
-      pressedColor: "bg-green-200",
+      activeColor: "bg-green-500",
+      activeGlowColor: "shadow-green-500",
+      activeGlow: "shadow-xl",
     },
   ];
   const FLASH_DURATION = 500;
@@ -59,8 +67,12 @@ const Memory = ({ setActiveComponent }) => {
       await new Promise((resolve) => setTimeout(resolve, SEQUENCE_INTERVAL));
       button.classList.remove(BUTTONS[sequence[i] - 1].color);
       button.classList.add(BUTTONS[sequence[i] - 1].activeColor);
+      button.classList.add(BUTTONS[sequence[i] - 1].activeGlow);
+      button.classList.add(BUTTONS[sequence[i] - 1].activeGlowColor);
       await new Promise((resolve) => setTimeout(resolve, FLASH_DURATION));
       button.classList.remove(BUTTONS[sequence[i] - 1].activeColor);
+      button.classList.remove(BUTTONS[sequence[i] - 1].activeGlow);
+      button.classList.remove(BUTTONS[sequence[i] - 1].activeGlowColor);
       button.classList.add(BUTTONS[sequence[i] - 1].color);
     }
 
@@ -92,6 +104,7 @@ const Memory = ({ setActiveComponent }) => {
 
       // If player completed the sequence correctly
       if (newPlayerSequence.length === sequence.length) {
+        setIsPlayerSequenceCorrect(true);
         setScore((prev) => {
           const result = prev + 1;
           if (result > highScore) {
@@ -102,6 +115,7 @@ const Memory = ({ setActiveComponent }) => {
         setPlayerSequence([]);
         setTimeout(() => {
           generateNextSequence();
+          setIsPlayerSequenceCorrect(undefined);
         }, SEQUENCE_INTERVAL);
       }
     },
@@ -179,64 +193,102 @@ const Memory = ({ setActiveComponent }) => {
   }, [sequence, isPlaying, showSequence]);
 
   return (
-    <div className="flex flex-col items-center space-y-6 p-8 max-w-md mx-auto bg-gray-100 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-black">Memory Game</h1>
-      <div className="mb-8">
-        <p className="text-lg mb-4 text-black">Score: {score}</p>
-
-        {!isPlaying && (
-          <div className="flex flex-col items-center space-y-4">
-            <button
-              onClick={startGame}
-              className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
-            >
-              {gameOver ? "Nod To Play Again" : "Nod To Start Game"}
-            </button>
-
-            {gameOver && (
-              <button
-                onClick={() => setActiveComponent("menu")}  // Fixed: Wrap in callback
-                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
-              >
-                Shake Your Head To Go Back
-              </button>
-            )}
-          </div>
-        )}
-
-        {gameOver && (
-          <div>
-            <p className="text-red-500 mt-4">Game Over! Final Score: {score}</p>
-            <p className="text-gray-600 mt-2">
-              Nod to play again, or shake head left-right to return to menu.
-            </p>
-          </div>
-        )}
-      </div>
-      <div className="flex justify-center gap-4 mb-8">
-        {BUTTONS.map(({ id, color, activeColor, pressedColor }) => (
+    <div className="flex flex-col items-center gap-4 p-8 max-w-md mx-auto rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold flex gap-2 justify-center items-center">
+        <FontAwesomeIcon icon={faBrain} />
+        Memory Game
+      </h1>
+      <div className="flex justify-center gap-4">
+        {BUTTONS.map(({ id, color, activeGlow, activeGlowColor }) => (
           <button
             key={id}
             id={`button-${id}`}
             onClick={() => handleButtonActivation(id)}
             disabled={!isPlaying || isShowingSequence}
-            className={`w-24 h-24 rounded-full 
+            className={`w-24 h-24 rounded-full
+            border-none 
                             transition-colors duration-200 
-                            ${activeButton === id ? pressedColor : color}
-                            ${!isPlaying ? "opacity-50" : ""}`}
+                            ${color}
+                            ${
+                              activeButton === id
+                                ? `${activeGlowColor} ${activeGlow}`
+                                : ""
+                            }
+                            ${!isPlaying ? "opacity-25" : ""}`}
           />
         ))}
       </div>
+      <div className="flex flex-col items-start w-full">
+        {gameOver && (
+          <p className="text-error text-lg self-center font-bold">
+            You forgot the sequence 😵‍💫
+          </p>
+        )}
+        {!isPlaying && (
+          <>
+            {!gameOver && (
+              <button
+                onClick={startGame}
+                className="flex items-center justify-start gap-4 w-full pr-2"
+              >
+                <img
+                  src="https://img.icons8.com/?size=100&id=BGQDUMFak9MT&format=png&color=ffffff"
+                  className="w-10 h-10"
+                ></img>
+                <span>Nod to start the game.</span>
+              </button>
+            )}
+            {gameOver && (
+              <>
+                <button
+                  onClick={startGame}
+                  className="flex items-center justify-start gap-4 w-full pr-2"
+                >
+                  <img
+                    src="https://img.icons8.com/?size=100&id=BGQDUMFak9MT&format=png&color=ffffff"
+                    className="w-10 h-10 ml-4"
+                  ></img>
+                  <span>Nod to play again.</span>
+                </button>
+                <button
+                  className="flex items-center justify-center gap-2 text-left w-full pr-2"
+                  onClick={() => navigate("/")}
+                >
+                  <img className="w-16 h-16" src={nodLeft} />
+                  Shake your head left or right to return to the menu.
+                </button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="w-full flex flex-col font-bold text-lg gap-2">
+        <div className="w-full flex items-start justify-start gap-2 bg-primary px-4 py-1 rounded-md text-primary-content">
+          <span>Length of your sequence</span>
+          <div className="flex-grow"></div>
+          <span>{score}</span>
+        </div>
+        <div className="w-full flex items-start justify-start gap-2 bg-primary text-primary-content px-4 py-1 rounded-md">
+          <span>Length of your longest sequence</span>
+          <div className="flex-grow"></div>
+          <span>{highScore}</span>
+        </div>
+      </div>
 
       <div className="text-lg">
-        {!isPlaying && !gameOver && (
-          <p className="text-gray-600">Nod your head to start the game</p>
-        )}
         {isPlaying && !gameOver && (
-          <p className="text-black">
-            {isShowingSequence
-              ? "Watch the sequence..."
-              : "Your turn! Repeat the sequence"}
+          <p className="text-lg font-bold flex gap-2 justify-center items-center">
+            {isShowingSequence && <FontAwesomeIcon icon={faEye} />}
+            {!isShowingSequence && <FontAwesomeIcon icon={faRepeat} />}
+
+            <span>
+              {isShowingSequence
+                ? "Watch the sequence..."
+                : isPlayerSequenceCorrect
+                ? "You remembered! 😃"
+                : "Your turn! Repeat the sequence"}
+            </span>
           </p>
         )}
       </div>

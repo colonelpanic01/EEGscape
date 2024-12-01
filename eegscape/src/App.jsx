@@ -5,9 +5,9 @@ import Inputs from "./inputs/Inputs";
 import { EEGProvider } from "./context/EEGContext";
 import { useEffect } from "react";
 import MockEegEmitter from "./components/MockEegEmitter";
-import EegInputDisplay from "./components/EegInputDisplay";
 import EEGEmitter from "./components/EEGEmitter";
 import Metrics from "./components/Metrics";
+import Blink from "./components/Blink";
 
 function App() {
   useEffect(() => {}, []);
@@ -20,6 +20,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/blink" element={<Blink />} />
             <Route path="/inputs" element={<Inputs />} />
           </Routes>
         </BrowserRouter>

@@ -11,7 +11,7 @@ function Welcome({ onContinue }) {
     onContinue();
   });
 
-  const isConnected = status !== "Disconnected";
+  const isConnected = status !== "Disconnected" && status !== "Connecting...";
   const isCalibrated = status === "Calibrated";
 
   return (
