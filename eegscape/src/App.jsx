@@ -5,7 +5,6 @@ import Inputs from "./inputs/Inputs";
 import { EEGProvider } from "./context/EEGContext";
 import { useEffect } from "react";
 import MockEegEmitter from "./components/MockEegEmitter";
-import EegInputDisplay from "./components/EegInputDisplay";
 import EEGEmitter from "./components/EEGEmitter";
 import Metrics from "./components/Metrics";
 
