@@ -35,7 +35,12 @@ export const EEGProvider = ({ children }) => {
       { label: "Alpha", borderColor: "#FFCE56", data: [], fill: false },
       { label: "Beta", borderColor: "#4BC0C0", data: [], fill: false },
       { label: "Gamma", borderColor: "#9966FF", data: [], fill: false },
-      { label: "Filtered Channel 3", borderColor: "#EB6C36", data: [], fill: false },
+      {
+        label: "Filtered Channel 3",
+        borderColor: "#EB6C36",
+        data: [],
+        fill: false,
+      },
     ],
   });
 
@@ -100,44 +105,45 @@ export const EEGProvider = ({ children }) => {
           });
 
           //calculateMetrics(bandData);
-      });
-      
+        });
+
       // Subscribe to raw EEG data for Channel 3 filtering
       zipSamples(museClient.eegReadings)
-      .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
-      .subscribe((data) => {
-      const channel3Data = data.data[3]; // Get Channel 3 values
-      const filteredData = channel3Data.map((value) => bandpassFilter(value));
-      
-      // Calculate uVrms for each timestamp
-      filteredData.forEach((amplitude) => {
-        uMeans.current = 0.995 * uMeans.current + 0.005 * amplitude;
-          uVrms.current = Math.sqrt(
-            0.995 * uVrms.current ** 2 + 0.005 * (amplitude - uMeans.current) ** 2
+        .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+        .subscribe((data) => {
+          const channel3Data = data.data[3]; // Get Channel 3 values
+          const filteredData = channel3Data.map((value) =>
+            bandpassFilter(value)
           );
+
+          // Calculate uVrms for each timestamp
+          filteredData.forEach((amplitude) => {
+            uMeans.current = 0.995 * uMeans.current + 0.005 * amplitude;
+            uVrms.current = Math.sqrt(
+              0.995 * uVrms.current ** 2 +
+                0.005 * (amplitude - uMeans.current) ** 2
+            );
+          });
+
+          // Update the filtered uVrms chart
+          setFilteredChartData((prevData) => {
+            const newLabels = [...prevData.labels, currentTime];
+            if (newLabels.length > 50) newLabels.shift();
+
+            const newData = [...prevData.datasets[0].data, uVrms.current];
+            if (newData.length > 50) newData.shift();
+
+            return {
+              labels: newLabels,
+              datasets: [{ ...prevData.datasets[0], data: newData }],
+            };
+          });
         });
-
-        // Update the filtered uVrms chart
-        setFilteredChartData((prevData) => {
-          const newLabels = [...prevData.labels, currentTime];
-          if (newLabels.length > 50) newLabels.shift();
-
-          const newData = [...prevData.datasets[0].data, uVrms.current];
-          if (newData.length > 50) newData.shift();
-
-          return {
-            labels: newLabels,
-            datasets: [{ ...prevData.datasets[0], data: newData }],
-          };
-        });
-      });
-
     } catch (error) {
       console.error("Error connecting to Muse:", error);
       setStatus("Connection Failed");
     }
   };
-
 
   const configureDefaultPosition = () => {
     if (museClientRef.current) {
@@ -170,7 +176,7 @@ export const EEGProvider = ({ children }) => {
     }
   };
 
-  const isConcentrate  = () => {
+  const isConcentrate = () => {
     return uVrms.current > 20;
   };
 
