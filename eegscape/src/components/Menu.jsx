@@ -15,7 +15,7 @@ import nodLeft from "./../assets/nodLeft.png";
 import nodDown from "./../assets/nodDown.png";
 
 const Menu = () => {
-  const [activeComponent, setActiveComponent] = useState("memory");
+  const [activeComponent, setActiveComponent] = useState("menu");
   const { nod } = useReceiveEeg();
   const [count, setCount] = useState(2); // Start with the first button selected
 

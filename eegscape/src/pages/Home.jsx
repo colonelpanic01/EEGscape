@@ -10,8 +10,8 @@ function Home() {
   };
 
   return (
-    <Menu />
-    // <div>{showMenu ? <Menu /> : <Welcome onContinue={handleContinue} />}</div>
+    // <Menu />
+    <div>{showMenu ? <Menu /> : <Welcome onContinue={handleContinue} />}</div>
   );
 }
 
