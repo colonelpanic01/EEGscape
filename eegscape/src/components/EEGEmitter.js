@@ -4,10 +4,17 @@ import dispatchEeg from "../lib/dispatchEeg";
 
 function EEGEmitter() {
   // Get yawDegrees, pitchDegrees, and defaultPosition from EEGContext
-  const { yawDegrees, pitchDegrees, defaultPosition, isConcentrate } = useEEG();
+  const {
+    yawDegrees,
+    pitchDegrees,
+    defaultPosition,
+    isConcentrate,
+    isBlinking,
+  } = useEEG();
 
   // State to track the current dispatched action (only one at a time)
   const [dispatchState, setDispatchState] = useState(null);
+  const [allowBlink, setAllowBlink] = useState(true); // Controls the throttling of blink dispatch
 
   // Calculate the offset yaw and pitch degrees based on the default position
   const yawOffset = parseFloat(
@@ -29,9 +36,17 @@ function EEGEmitter() {
     // Avoid dispatching multiple actions simultaneously
     if (dispatchState) return; // Prevent if an action is already in progress
 
-    if(isConcentrate) dispatchEeg.concentration.focus();
-    if(!isConcentrate) dispatchEeg.concentration.relax();
+    if (isConcentrate) dispatchEeg.concentration.focus();
+    if (!isConcentrate) dispatchEeg.concentration.relax();
 
+    // Handle blinking with throttling
+    if (isBlinking() && allowBlink) {
+      // Check allowBlink before dispatching
+      console.log("Blink DISPATCHED");
+      dispatchEeg.blink();
+      setAllowBlink(false); // Disable blinking temporarily
+      setTimeout(() => setAllowBlink(true), 500); // Re-enable blinking after 500ms
+    }
 
     // Handle pitch-based nods
     if (pitchOffset <= -30) {

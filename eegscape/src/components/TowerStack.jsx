@@ -38,9 +38,9 @@ const TowerStack = ({ setActiveComponent }) => {
   const [speedMultiplier, setSpeedMultiplier] = useState(
     INITIAL_SPEED_MULTIPLIER
   );
-  const [gameOver, setGameOver] = useState(true);
+  const [gameOver, setGameOver] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
-  const { nod } = useReceiveEeg();
+  const { nod, blink } = useReceiveEeg();
   const navigate = useNavigate();
 
   const gameRef = useRef(null);
@@ -179,9 +179,16 @@ const TowerStack = ({ setActiveComponent }) => {
 
   nod.useNodBottom(() => {
     if (!gameOver) {
-      handleBlockDrop();
+      // handleBlockDrop();
     } else {
       handlePlayAgain();
+    }
+  });
+
+  blink.useBlink(() => {
+    console.log("Blink RECEIEVD");
+    if (!gameOver) {
+      handleBlockDrop();
     }
   });
 

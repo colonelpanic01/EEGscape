@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MuseClient, channelNames } from 'muse-js';
 import { Observable, merge, of, timer } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
+import { bandpass } from '../inputs/bandpass';
 
 const MuseBlinker = () => {
   const [connected, setConnected] = useState(false);
@@ -9,6 +10,7 @@ const MuseBlinker = () => {
   const [rightBlinks, setRightBlinks] = useState([]);
 
   const muse = new MuseClient();
+  const bandpassFilter = bandpass(256, 0.1, 50);
 
   useEffect(() => {
     // Set up connection status subscription
@@ -32,13 +34,14 @@ const MuseBlinker = () => {
     const leftBlinksObservable = muse.eegReadings.pipe(
       filter(r => r.electrode === leftEyeChannel),
       map(r => Math.max(...r.samples.map(n => Math.abs(n)))),
-      filter(max => max > 200),
+      map(value => bandpassFilter(value)),
     );
 
     const rightBlinksObservable = muse.eegReadings.pipe(
       filter(r => r.electrode === rightEyeChannel),
       map(r => Math.max(...r.samples.map(n => Math.abs(n)))),
-      filter(max => max > 200),
+      map(value => bandpassFilter(value)),
+      
     );
 
     // Subscribe to blink observables

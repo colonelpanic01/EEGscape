@@ -47,6 +47,8 @@ export const EEGProvider = ({ children }) => {
   const museClientRef = useRef(null);
   const uVrms = useRef(0); // reference to store uVrms value
   const uMeans = useRef(0);
+  const BlinkuVrms = useRef(0);
+  const blinkuMeans = useRef(0);
 
   const connectToMuse = async () => {
     try {
@@ -107,6 +109,26 @@ export const EEGProvider = ({ children }) => {
           //calculateMetrics(bandData);
         });
 
+      // Subscribe for blinking
+      zipSamples(museClient.eegReadings)
+        .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+        .subscribe((data) => {
+          const rawDataBlink = data.data[0];
+
+          const blinkData = rawDataBlink.map((value) => bandpassFilter(value));
+
+          // Calculate uVrms for blink RMS
+          blinkData.forEach((amplitude) => {
+            blinkuMeans.current =
+              0.995 * blinkuMeans.current + 0.005 * amplitude;
+            BlinkuVrms.current = Math.sqrt(
+              0.995 * BlinkuVrms.current ** 2 +
+                0.005 * (amplitude - blinkuMeans.current) ** 2
+            );
+          });
+          // console.log("BlinkuVrms.current", BlinkuVrms.current);
+        });
+
       // Subscribe to raw EEG data for Channel 3 filtering
       zipSamples(museClient.eegReadings)
         .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
@@ -123,20 +145,6 @@ export const EEGProvider = ({ children }) => {
               0.995 * uVrms.current ** 2 +
                 0.005 * (amplitude - uMeans.current) ** 2
             );
-          });
-
-          // Update the filtered uVrms chart
-          setFilteredChartData((prevData) => {
-            const newLabels = [...prevData.labels, currentTime];
-            if (newLabels.length > 50) newLabels.shift();
-
-            const newData = [...prevData.datasets[0].data, uVrms.current];
-            if (newData.length > 50) newData.shift();
-
-            return {
-              labels: newLabels,
-              datasets: [{ ...prevData.datasets[0], data: newData }],
-            };
           });
         });
     } catch (error) {
@@ -180,6 +188,16 @@ export const EEGProvider = ({ children }) => {
     return uVrms.current > 20;
   };
 
+  const isBlinking = () => {
+    console.log("BlinkuVrms.current", BlinkuVrms.current);
+    return BlinkuVrms.current > 20;
+  };
+
+  const blinkVoltage = () => {
+    //console.log("BlinkuVrms.current", BlinkuVrms.current);
+    return uVrms.current;
+  };
+
   const value = {
     status,
     metrics,
@@ -190,6 +208,8 @@ export const EEGProvider = ({ children }) => {
     defaultPosition,
     chartData,
     isConcentrate,
+    isBlinking,
+    blinkVoltage,
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;

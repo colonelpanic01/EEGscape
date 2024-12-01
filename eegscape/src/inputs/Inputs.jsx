@@ -5,8 +5,10 @@ import { Line } from "react-chartjs-2";
 import { bandpass } from "./bandpass";
 import "chart.js/auto";
 import * as THREE from "three";
+import { useEEG } from "../context/EEGContext";
 
 export default function MuseConnectPage() {
+  const {blinkVoltage} = useEEG();
   const [status, setStatus] = useState("Disconnected");
   const [selectedChannel, setSelectedChannel] = useState(0);
   const [metrics, setMetrics] = useState({
@@ -38,10 +40,24 @@ export default function MuseConnectPage() {
       ],
     });
 
+    const [blinkChartData, setBlinkChartData] = useState({
+      labels: [],
+      datasets: [
+        {
+          label: "Blink Data",
+          borderColor: "#FFFFFF",
+          data: [],
+          fill: false,
+        },
+      ],
+    });
+
     // Variables for uMeans and uVrms calculations
     const uMeans = useRef(0);
     const uVrms = useRef(0);
-  
+
+    const blinkuVrms = useRef(0);
+    const blinkuMeans = useRef(0);
 
   // details for head mapping in 3d space (as cube)
   const [yawDegrees, setYawDegrees] = useState(0);
@@ -206,6 +222,35 @@ export default function MuseConnectPage() {
         zipSamples(museClient.eegReadings)
         .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
         .subscribe((data) => {
+        const blinkData = data.data[0]; 
+          const currentTime = new Date().toLocaleTimeString();
+
+          blinkData.forEach((amplitude) => {
+            blinkuMeans.current = 0.995 * blinkuMeans.current + 0.005 * amplitude;
+              blinkuMeans.current = Math.sqrt(
+                0.995 * blinkuMeans.current ** 2 + 0.005 * (amplitude - blinkuMeans.current) ** 2
+              );
+            });
+
+            console.log("blinkuMeans.current", blinkuMeans.current);
+          // Update the filtered uVrms chart
+          setBlinkChartData((prevData) => {
+            const newLabels = [...prevData.labels, currentTime];
+            if (newLabels.length > 50) newLabels.shift();
+
+            const newData = [...prevData.datasets[0].data, blinkuMeans.current];
+            if (newData.length > 50) newData.shift();
+
+            return {
+              labels: newLabels,
+              datasets: [{ ...prevData.datasets[0], data: newData }],
+            };
+          });
+        });
+
+        zipSamples(museClient.eegReadings)
+        .pipe(epoch({ duration: 256, interval: 50, samplingRate: 256 }))
+        .subscribe((data) => {
         const channel3Data = data.data[3]; // Get Channel 3 values
         const filteredData = channel3Data.map((value) => bandpassFilter(value));
         
@@ -233,6 +278,19 @@ export default function MuseConnectPage() {
             };
           });
         });
+        
+        // setBlinkChartData((prevData) => {
+        //   const newLabels = [...prevData.labels, currentTime];
+        //   if (newLabels.length > 50) newLabels.shift();
+
+        //   const newData = [...prevData.datasets[0].data, blinkuVrms.current];
+        //   if (newData.length > 50) newData.shift();
+
+        //   return {
+        //     labels: newLabels,
+        //     datasets: [{ ...prevData.datasets[0], data: newData }],
+        //   };
+        // });
 
     } catch (error) {
       console.error("Error connecting to Muse:", error);
@@ -308,6 +366,25 @@ export default function MuseConnectPage() {
         <div style={{ width: "500px", height: "400px" }}>
           <Line
             data={filteredChartData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: "Time" } },
+                y: {
+                  title: { display: true, text: "UVrms" },
+                  min: -200, // Set the minimum value of the Y-axis
+                  max: 200,  // Set the maximum value of the Y-axis
+                },
+              },
+            }}
+          />
+        </div>
+
+
+        <div style={{ width: "500px", height: "400px" }}>
+          <Line
+            data={blinkChartData}
             options={{
               responsive: true,
               maintainAspectRatio: false,
