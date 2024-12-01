@@ -284,7 +284,7 @@ const TowerStack = ({ setActiveComponent }) => {
                   }}
                 >
                   {index === blocks.length - 1 && <span>{stackHeight}</span>}
-                  {gameOver && (
+                  {gameOver && index === blocks.length - 1 && (
                     <p className="text-error font-bold text-lg absolute bottom-full">
                       You missed the tower entirely 😔
                     </p>
