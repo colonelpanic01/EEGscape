@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 
 const GyroFocus = ({ setActiveComponent }) => {
-    const { tilt, nod } = useReceiveEeg();
+    const { tilt, nod, concentration } = useReceiveEeg();
     const [pitchValue, setPitchValue] = useState(null);
     const [playerPosition, setPlayerPosition] = useState(0);
     const [targetPosition, setTargetPosition] = useState(45);
@@ -17,6 +17,7 @@ const GyroFocus = ({ setActiveComponent }) => {
     const ARC_RADIUS = 150;
     const CENTER_X = 200;
     const CENTER_Y = 200;
+    const count = 0;
 
     const pitchToPosition = useCallback((pitch) => {
         const clampedPitch = Math.max(-90, Math.min(90, pitch));
@@ -38,31 +39,29 @@ const GyroFocus = ({ setActiveComponent }) => {
         };
     };
 
-    useEffect(() => {
-        let interval;
+    // useEffect(() => {
+    //     let interval;
 
-        if (isAligned) {
-            if (!alignmentStartTime) {
-                setAlignmentStartTime(Date.now());
-            }
+    //     if (isAligned) {
+    //         if (!alignmentStartTime) {
+    //             setAlignmentStartTime(Date.now());
+    //         }
 
-            interval = setInterval(() => {
-                const elapsedTime = (Date.now() - alignmentStartTime) / 1000;
-                const newConcentrationLevel = Math.min((elapsedTime / 3) * 100, 100);
-                setConcentrationLevel(newConcentrationLevel);
+    //         interval = setInterval(() => {
+    //             setConcentrationLevel(newConcentrationLevel);
 
-                if (elapsedTime >= 3) {
-                    setScore((prev) => prev + 1);
-                    generateNewTarget();
-                }
-            }, 100);
-        } else {
-            setAlignmentStartTime(null);
-            setConcentrationLevel(0);
-        }
+    //             if (elapsedTime >= 3) {
+    //                 setScore((prev) => prev + 1);
+    //                 generateNewTarget();
+    //             }
+    //         }, 100);
+    //     } else {
+    //         setAlignmentStartTime(null);
+    //         setConcentrationLevel(0);
+    //     }
 
-        return () => clearInterval(interval);
-    }, [isAligned, alignmentStartTime, generateNewTarget]);
+    //     return () => clearInterval(interval);
+    // }, [isAligned, alignmentStartTime, generateNewTarget]);
 
     useEffect(() => {
         if (timeLeft > 0 && !gameOver) {
@@ -87,6 +86,7 @@ const GyroFocus = ({ setActiveComponent }) => {
     // Restart or go back to menu using nods
     nod.useNodBottom(() => {
         if (gameOver) {
+            count = 0;
             setScore(0);
             setTimeLeft(60);
             setGameOver(false);
@@ -105,6 +105,12 @@ const GyroFocus = ({ setActiveComponent }) => {
             setActiveComponent("menu");
         }
     });
+    
+    concentration.useFocus(() => {
+        console.log("concentration");
+        
+    });
+    
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
