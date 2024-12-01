@@ -8,6 +8,8 @@ const GyroFocus = ({ setActiveComponent }) => {
     const [targetPosition, setTargetPosition] = useState(45);
     const [score, setScore] = useState(0);
     const [isAligned, setIsAligned] = useState(false);
+    const [alignmentStartTime, setAlignmentStartTime] = useState(null);
+    const [concentrationLevel, setConcentrationLevel] = useState(0); // Ranges from 0 to 100
 
     // Constants for game mechanics
     const ALIGNMENT_THRESHOLD = 7; // Degrees of tolerance for alignment
@@ -27,6 +29,7 @@ const GyroFocus = ({ setActiveComponent }) => {
         const newPosition = Math.random() * 180 - 90; // Random position between -90 and 90
         setTargetPosition(newPosition);
         setIsAligned(false);
+        setConcentrationLevel(0); // Reset concentration level
     }, []);
 
     // Calculate position on arc
@@ -38,37 +41,43 @@ const GyroFocus = ({ setActiveComponent }) => {
         };
     };
 
-    // Handle confirmation keypress
+    // Handle alignment logic
     useEffect(() => {
-        const handleKeyPress = (event) => {
-            if (event.code === 'Space' && isAligned) {
-                setScore(prev => prev + 1);
-                generateNewTarget();
-            }
-        };
+        let interval;
 
-        window.addEventListener('keydown', handleKeyPress);
-        return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [isAligned, generateNewTarget]);
+        if (isAligned) {
+            if (!alignmentStartTime) {
+                setAlignmentStartTime(Date.now());
+            }
+
+            interval = setInterval(() => {
+                const elapsedTime = (Date.now() - alignmentStartTime) / 1000;
+                const newConcentrationLevel = Math.min(elapsedTime / 3 * 100, 100); // Max at 100%
+                setConcentrationLevel(newConcentrationLevel);
+
+                if (elapsedTime >= 3) {
+                    setScore((prev) => prev + 1);
+                    generateNewTarget();
+                }
+            }, 100);
+        } else {
+            setAlignmentStartTime(null);
+            setConcentrationLevel(0);
+        }
+
+        return () => clearInterval(interval);
+    }, [isAligned, alignmentStartTime, generateNewTarget]);
 
     // Update player position based on pitch
     tilt.useTilt((newPitch) => {
         setPitchValue(newPitch);
         const newPosition = pitchToPosition(newPitch);
         setPlayerPosition(newPosition);
-        
+
         // Check alignment
         const isNowAligned = Math.abs(newPosition - targetPosition) < ALIGNMENT_THRESHOLD;
         setIsAligned(isNowAligned);
     });
-
-    // Handle button confirmation
-    const handleConfirm = () => {
-        if (isAligned) {
-            setScore(prev => prev + 1);
-            generateNewTarget();
-        }
-    };
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
@@ -81,7 +90,7 @@ const GyroFocus = ({ setActiveComponent }) => {
                         stroke="#CBD5E0"
                         strokeWidth="4"
                     />
-                    
+
                     {/* Target Circle */}
                     <circle
                         cx={calculateArcPosition(targetPosition).x}
@@ -94,8 +103,8 @@ const GyroFocus = ({ setActiveComponent }) => {
                     <circle
                         cx={calculateArcPosition(playerPosition).x}
                         cy={calculateArcPosition(playerPosition).y}
-                        r="10"
-                        fill={isAligned ? "#48BB78" : "#4299E1"}
+                        r={10 + (concentrationLevel / 10)} // Radius grows with concentration
+                        fill={`rgba(72, 187, 120, ${0.4 + concentrationLevel / 100})`} // Darker with concentration
                     />
                 </svg>
             </div>
@@ -103,15 +112,16 @@ const GyroFocus = ({ setActiveComponent }) => {
             <div className="mt-8 space-y-4 text-center">
                 <p className="text-2xl font-bold">Score: {score}</p>
                 <p className="text-lg">
-                    {isAligned ? "Aligned! Press SPACE or click Confirm" : "Align the circles by tilting your head"}
+                    {isAligned
+                        ? `Concentration: ${Math.floor(concentrationLevel)}%`
+                        : "Align the circles by tilting your head"}
                 </p>
                 <button
-                    onClick={handleConfirm}
+                    onClick={() => isAligned && setScore((prev) => prev + 1)}
                     className={`py-2 px-4 rounded ${
-                        isAligned 
-                            ? "bg-green-500 hover:bg-green-700" 
-                            : "bg-gray-400"
+                        isAligned ? "bg-green-500 hover:bg-green-700" : "bg-gray-400"
                     } text-white mr-4`}
+                    disabled={!isAligned}
                 >
                     Confirm
                 </button>

@@ -85,7 +85,7 @@ function useMuse() {
       museClientRef.current = museClient;
       setStatus("Connected");
 
-      // yippee time to subscribe to accelerometer data
+      // yippee time to subscribe to the accelerometer data
       museClient.accelerometerData.subscribe((data) => {
         //console.log("Accelerometer data:", data);
         if (data && Array.isArray(data.samples) && data.samples.length > 0) {

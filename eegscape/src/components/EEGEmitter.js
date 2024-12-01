@@ -32,6 +32,7 @@ function EEGEmitter() {
     if(isConcentrate) dispatchEeg.concentration.focus();
     if(!isConcentrate) dispatchEeg.concentration.relax();
 
+
     // Handle pitch-based nods
     if (pitchOffset <= -30) {
       dispatchEeg.nod.left();
