@@ -7,24 +7,28 @@ import { useEffect } from "react";
 import MockEegEmitter from "./components/MockEegEmitter";
 import EEGEmitter from "./components/EEGEmitter";
 import Metrics from "./components/Metrics";
+import MoveCommand from "./utils/MoveCommand";
 
 function App() {
   useEffect(() => {}, []);
+
   return (
-    <>
-      <EEGProvider>
-        <EEGEmitter />
-        <MockEegEmitter />
-        <Metrics />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/inputs" element={<Inputs />} />
-          </Routes>
-        </BrowserRouter>
-        {/* <EegInputDisplay /> */}
-      </EEGProvider>
-    </>
+    <EEGProvider> {/* Wrap the app with EEGProvider to give context to components */}
+      {/* Render other components */}
+      <h1>Dojo Move Command Example</h1>
+      <MoveCommand />
+      {/* <MockEegEmitter />
+      <EEGEmitter />
+      <Metrics /> */}
+      
+      {/* Add routing if needed */}
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/inputs" element={<Inputs />} />
+        </Routes>
+      </BrowserRouter>
+    </EEGProvider>
   );
 }
 
