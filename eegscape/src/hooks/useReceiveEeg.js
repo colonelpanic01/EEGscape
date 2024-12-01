@@ -23,10 +23,15 @@ function useReceiveEeg() {
       }),
   };
 
+  const blink = {
+    useBlink: (handler) => useEventSubscriber(EEG_EVENT_CODES.yaw, handler),
+  };
+
   return {
     concentration,
     nod,
     tilt,
+    blink,
   };
 }
 
