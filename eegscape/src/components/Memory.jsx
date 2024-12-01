@@ -44,7 +44,7 @@ const Memory = ({ setActiveComponent }) => {
       // color: "bg-red-500",
       // activeColor: "bg-red-500",
       activeGlowColor: "shadow-primary",
-      activeGlow: "shadow-xl",
+      activeGlow: "!bg-primary",
       starterText: "Nod left",
       starterIcon: nodLeft,
       icon: "🌹",
@@ -54,8 +54,8 @@ const Memory = ({ setActiveComponent }) => {
       id: 2,
       // color: "bg-blue-500",
       // activeColor: "bg-blue-500",
-      activeGlowColor: "shadow-primary",
-      activeGlow: "shadow-xl",
+      activeGlowColor: "shadow-secondary",
+      activeGlow: "!bg-secondary",
       starterText: "Nod bottom",
       starterIcon: nodBottom,
       icon: "🐦",
@@ -65,8 +65,8 @@ const Memory = ({ setActiveComponent }) => {
       id: 3,
       // color: "bg-green-500",
       // activeColor: "bg-green-500",
-      activeGlowColor: "shadow-primary",
-      activeGlow: "shadow-xl",
+      activeGlowColor: "shadow-accent",
+      activeGlow: "!bg-accent",
       starterText: "Nod right",
       starterIcon: nodRight,
       icon: "🎆",
@@ -252,7 +252,7 @@ const Memory = ({ setActiveComponent }) => {
               disabled={!isPlaying || isShowingSequence}
               className={`w-36 h-36 rounded-full
             border-none flex flex-col justify-center items-center
-                            transition-colors duration-200 bg-primary text-primary-content
+                            transition-colors duration-200 bg-white text-primary-content
                             ${!isPlaying || gameOver ? "text-lg" : "text-4xl"}
                             ${
                               activeButton === id
