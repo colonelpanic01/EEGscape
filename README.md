@@ -12,7 +12,7 @@ EEGscape is built using:
 
 ## Contributors
 This project was created for Hack Western 11 by the following people:
-- Dhir Pathak
-- Nathan Schultz
-- Fatih Nararya
-- Mahdi Khunt
+- [Dhir Pathak] (https://www.linkedin.com/in/dhirpathak/)
+- [Nathan Schultz] (https://www.linkedin.com/in/nathan-r-a-schultz/)
+- [Fatih Nararya] (https://www.linkedin.com/in/fatih-nararya/)
+- [Mahdi Khunt] (https://www.linkedin.com/in/mrkhunt/)
