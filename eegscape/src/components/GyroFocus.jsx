@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 
 const GyroFocus = ({ setActiveComponent }) => {
-    const { tilt } = useReceiveEeg();
+    const { tilt, nod } = useReceiveEeg();
     const [pitchValue, setPitchValue] = useState(null);
     const [playerPosition, setPlayerPosition] = useState(0);
     const [targetPosition, setTargetPosition] = useState(45);
@@ -10,20 +10,19 @@ const GyroFocus = ({ setActiveComponent }) => {
     const [isAligned, setIsAligned] = useState(false);
     const [alignmentStartTime, setAlignmentStartTime] = useState(null);
     const [concentrationLevel, setConcentrationLevel] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(60); // Timer in seconds
+    const [gameOver, setGameOver] = useState(false);
 
-    // Constants for game mechanics
     const ALIGNMENT_THRESHOLD = 7;
-    const ARC_RADIUS = 150; // Increased for a larger display
-    const CENTER_X = 200;   // Adjusted to match increased size
+    const ARC_RADIUS = 150;
+    const CENTER_X = 200;
     const CENTER_Y = 200;
 
-    // Convert pitch to position on arc (assuming pitch ranges from -90 to 90)
     const pitchToPosition = useCallback((pitch) => {
         const clampedPitch = Math.max(-90, Math.min(90, pitch));
         return clampedPitch;
     }, []);
 
-    // Generate random position on arc
     const generateNewTarget = useCallback(() => {
         const newPosition = Math.random() * 180 - 90;
         setTargetPosition(newPosition);
@@ -31,7 +30,6 @@ const GyroFocus = ({ setActiveComponent }) => {
         setConcentrationLevel(0);
     }, []);
 
-    // Calculate position on arc
     const calculateArcPosition = (angle) => {
         const radians = (angle - 90) * (Math.PI / 180);
         return {
@@ -40,7 +38,6 @@ const GyroFocus = ({ setActiveComponent }) => {
         };
     };
 
-    // Handle alignment logic
     useEffect(() => {
         let interval;
 
@@ -67,21 +64,51 @@ const GyroFocus = ({ setActiveComponent }) => {
         return () => clearInterval(interval);
     }, [isAligned, alignmentStartTime, generateNewTarget]);
 
-    // Update player position based on pitch
+    useEffect(() => {
+        if (timeLeft > 0 && !gameOver) {
+            const timer = setInterval(() => {
+                setTimeLeft((prev) => prev - 1);
+            }, 1000);
+            return () => clearInterval(timer);
+        } else if (timeLeft === 0) {
+            setGameOver(true);
+        }
+    }, [timeLeft, gameOver]);
+
     tilt.useTilt((newPitch) => {
         setPitchValue(newPitch);
         const newPosition = pitchToPosition(newPitch);
         setPlayerPosition(newPosition);
 
-        // Check alignment
         const isNowAligned = Math.abs(newPosition - targetPosition) < ALIGNMENT_THRESHOLD;
         setIsAligned(isNowAligned);
+    });
+
+    // Restart or go back to menu using nods
+    nod.useNodBottom(() => {
+        if (gameOver) {
+            setScore(0);
+            setTimeLeft(60);
+            setGameOver(false);
+            generateNewTarget();
+        }
+    });
+
+    nod.useNodLeft(() => {
+        if (gameOver) {
+            setActiveComponent("menu");
+        }
+    });
+
+    nod.useNodRight(() => {
+        if (gameOver) {
+            setActiveComponent("menu");
+        }
     });
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
             <div className="relative w-[400px] h-[400px] flex justify-center items-center">
-                {/* Background Arc */}
                 <svg className="absolute" width="400" height="400" viewBox="0 0 400 400">
                     <path
                         d="M 50 200 A 150 150 0 0 1 350 200"
@@ -89,16 +116,12 @@ const GyroFocus = ({ setActiveComponent }) => {
                         stroke="#CBD5E0"
                         strokeWidth="4"
                     />
-
-                    {/* Target Circle */}
                     <circle
                         cx={calculateArcPosition(targetPosition).x}
                         cy={calculateArcPosition(targetPosition).y}
                         r="20"
                         fill="#F56565"
                     />
-
-                    {/* Player Circle */}
                     <circle
                         cx={calculateArcPosition(playerPosition).x}
                         cy={calculateArcPosition(playerPosition).y}
@@ -109,19 +132,25 @@ const GyroFocus = ({ setActiveComponent }) => {
             </div>
 
             <div className="mt-8 space-y-4 text-center">
-                <p className="text-2xl text-gray-700 font-bold">Score: {score}</p>
-                <p className="text-lg text-gray-600">
-                    {isAligned
-                        ? `Concentration: ${Math.floor(concentrationLevel)}%`
-                        : "Align the circles by tilting your head"}
-                </p>
-
-                <button
-                    onClick={() => setActiveComponent("menu")}
-                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
-                >
-                    Exit Game
-                </button>
+                {!gameOver ? (
+                    <>
+                        <p className="text-2xl text-gray-700 font-bold">Score: {score}</p>
+                        <p className="text-lg text-gray-600">
+                            {isAligned
+                                ? `Concentration: ${Math.floor(concentrationLevel)}%`
+                                : "Align the circles by tilting your head"}
+                        </p>
+                        <p className="text-lg text-gray-600">Time Left: {timeLeft}s</p>
+                    </>
+                ) : (
+                    <>
+                        <p className="text-2xl text-red-600 font-bold">Game Over!</p>
+                        <p className="text-lg text-gray-700">Final Score: {score}</p>
+                        <p className="text-lg text-gray-600">
+                            Nod down to play again or left/right to return to the menu.
+                        </p>
+                    </>
+                )}
             </div>
         </div>
     );
