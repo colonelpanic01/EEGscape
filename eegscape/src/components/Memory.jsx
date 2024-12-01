@@ -3,7 +3,7 @@ import useReceiveEeg from "../hooks/useReceiveEeg";
 import { useNavigate } from "react-router";
 import useLocalStorage from "use-local-storage";
 
-const Memory = () => {
+const Memory = ({ setActiveComponent }) => {
   // Game states
   const [sequence, setSequence] = useState([]);
   const [playerSequence, setPlayerSequence] = useState([]);
