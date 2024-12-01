@@ -6,6 +6,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGopuram } from "@fortawesome/free-solid-svg-icons";
 import { faEye } from "@fortawesome/free-regular-svg-icons";
 import nodLeft from "./../assets/nodLeft-white.png";
+import rockCrashSuccessSound from "./../assets/sounds/rock-crash-succesful.mp3";
+import rockCrashFailSound from "./../assets/sounds/rock-crash-fail.mp3";
+import useSound from "use-sound";
 
 const DEFAULT_WIDTH = 200;
 const DEFAULT_HEIGHT = 100;
@@ -41,7 +44,8 @@ const TowerStack = ({ setActiveComponent }) => {
   const [gameOver, setGameOver] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
   const { nod, blink } = useReceiveEeg();
-  const navigate = useNavigate();
+  const [playFailSound] = useSound(rockCrashFailSound);
+  const [playSuccessSound] = useSound(rockCrashSuccessSound);
 
   const gameRef = useRef(null);
 
@@ -145,6 +149,7 @@ const TowerStack = ({ setActiveComponent }) => {
 
     setSpeedMultiplier((prev) => prev + SPEED_INCREMENT);
     setIsFalling(true);
+    playSuccessSound();
 
     setTimeout(() => {
       setBlocks((prev) => [
@@ -167,6 +172,12 @@ const TowerStack = ({ setActiveComponent }) => {
       setIsFalling(false);
     }, FALLING_DURATION);
   };
+
+  useEffect(() => {
+    if (gameOver) {
+      playFailSound();
+    }
+  }, [gameOver, playSuccessSound]);
 
   function handlePlayAgain() {
     setGameOver(false);
