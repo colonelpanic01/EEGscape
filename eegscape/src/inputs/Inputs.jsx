@@ -35,9 +35,6 @@ export default function MuseConnectPage() {
           data: [],
           fill: false,
         },
-        {
-          
-        }
       ],
     });
 
