@@ -22,7 +22,10 @@ export const EEGProvider = ({ children }) => {
   });
   const [yawDegrees, setYawDegrees] = useState(0);
   const [pitchDegrees, setPitchDegrees] = useState(0);
-  const [defaultPosition, setDefaultPosition] = useState({ yaw: yawDegrees, pitch: pitchDegrees });
+  const [defaultPosition, setDefaultPosition] = useState({
+    yaw: yawDegrees,
+    pitch: pitchDegrees,
+  });
   const [chartData, setChartData] = useState({
     labels: [], // for time points
     datasets: [
@@ -109,27 +112,32 @@ export const EEGProvider = ({ children }) => {
 
   const configureDefaultPosition = () => {
     if (museClientRef.current) {
-      const subscription = museClientRef.current.accelerometerData.subscribe((data) => {
-        if (data && Array.isArray(data.samples) && data.samples.length > 0) {
-          const { x, y, z } = data.samples[0];
-          const gVector = new THREE.Vector3(x, y, z);
-          const yawAngle = Math.atan2(gVector.x, gVector.z);
-          const pitchAngle = Math.atan2(gVector.y, gVector.z);
-  
-          const yawDegrees = THREE.MathUtils.radToDeg(yawAngle).toFixed(2); // Calculate yaw degrees
-          const pitchDegrees = THREE.MathUtils.radToDeg(pitchAngle).toFixed(2); // Calculate pitch degrees
-  
-          console.log('Setting default position:', yawDegrees, pitchDegrees);
-          setDefaultPosition({ yaw: yawDegrees, pitch: pitchDegrees }); // Set the default position with calculated values
-  
-          // Unsubscribe after capturing the first snapshot
-          subscription.unsubscribe();
-        } else {
-          console.error('Error in accelerometer data:', data);
+      const subscription = museClientRef.current.accelerometerData.subscribe(
+        (data) => {
+          if (data && Array.isArray(data.samples) && data.samples.length > 0) {
+            const { x, y, z } = data.samples[0];
+            const gVector = new THREE.Vector3(x, y, z);
+            const yawAngle = Math.atan2(gVector.x, gVector.z);
+            const pitchAngle = Math.atan2(gVector.y, gVector.z);
+
+            const yawDegrees = THREE.MathUtils.radToDeg(yawAngle).toFixed(2); // Calculate yaw degrees
+            const pitchDegrees =
+              THREE.MathUtils.radToDeg(pitchAngle).toFixed(2); // Calculate pitch degrees
+
+            console.log("Setting default position:", yawDegrees, pitchDegrees);
+            setDefaultPosition({ yaw: yawDegrees, pitch: pitchDegrees }); // Set the default position with calculated values
+
+            setStatus("Calibrated");
+
+            // Unsubscribe after capturing the first snapshot
+            subscription.unsubscribe();
+          } else {
+            console.error("Error in accelerometer data:", data);
+          }
         }
-      });
+      );
     } else {
-      console.error('MuseClient instance is not connected yet.');
+      console.error("MuseClient instance is not connected yet.");
     }
   };
 
@@ -141,7 +149,7 @@ export const EEGProvider = ({ children }) => {
     connectToMuse,
     configureDefaultPosition,
     defaultPosition,
-    chartData
+    chartData,
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;
