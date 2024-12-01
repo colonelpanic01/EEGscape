@@ -50,8 +50,11 @@ const Menu = () => {
       <div className="flex flex-col items-center space-y-8 py-8 max-w-[600px] mx-auto bg-gray-100 rounded-lg shadow-lg">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-4">Headset Connected!</h1>
-          <p className="text-lg text-gray-700">Please select a game to begin:</p>
+          <p className="text-lg text-gray-700">
+            Please select a game to begin:
+          </p>
         </div>
+        <div></div>
 
         {/* Add horizontal padding to the button container */}
         <div className="w-full px-6">
@@ -63,8 +66,8 @@ const Menu = () => {
                 onClick={() => handleButtonClick(id)}
                 className={`py-4 px-6 rounded text-lg font-semibold min-w-[160px] transition-all duration-200
                   bg-${color}-500 hover:bg-${color}-600 text-white ${
-                    count === id ? "ring-4 ring-offset-2 ring-black" : ""
-                  }`}
+                  count === id ? "ring-4 ring-offset-2 ring-black" : ""
+                }`}
               >
                 {label}
               </button>
