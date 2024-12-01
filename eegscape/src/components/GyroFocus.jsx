@@ -2,9 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import useLocalStorage from "use-local-storage";
 import nodLeftWhite from "./../assets/nodLeft-white.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons";
 
 const ALIGNMENT_AND_FOCUS_TIME = 3000;
 const ALIGNMENT_AND_FOCUS_TIME_INCREMENT = 200;
+const DEFAULT_TIME = 60;
+const RED_TIME_THRESHOLD = 10;
 
 const GyroFocus = ({ setActiveComponent }) => {
   const { tilt, nod, concentration } = useReceiveEeg();
@@ -20,7 +24,7 @@ const GyroFocus = ({ setActiveComponent }) => {
   );
   const [isPlaying, setIsPlaying] = useState(false);
   const [concentrationLevel, setConcentrationLevel] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(2); // Timer in seconds
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_TIME); // Timer in seconds
   const [gameOver, setGameOver] = useState(false);
   const [isFocused, setIsFocused] = useState(0);
 
@@ -63,10 +67,10 @@ const GyroFocus = ({ setActiveComponent }) => {
 
   useEffect(() => {
     if (timeLeft > 0 && !gameOver) {
-      //   const timer = setInterval(() => {
-      //     setTimeLeft((prev) => prev - 1);
-      //   }, 1000);
-      //   return () => clearInterval(timer);
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
     } else if (timeLeft === 0) {
       setGameOver(true);
     }
@@ -88,7 +92,7 @@ const GyroFocus = ({ setActiveComponent }) => {
   nod.useNodBottom(() => {
     if (gameOver) {
       setScore(0);
-      setTimeLeft(60);
+      setTimeLeft(DEFAULT_TIME);
       setGameOver(false);
       generateNewTarget();
     }
@@ -141,7 +145,46 @@ const GyroFocus = ({ setActiveComponent }) => {
 
   return (
     <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center h-screen">
-      <div className="relative w-[400px] h-[400px] flex justify-center items-center">
+      <div className="relative w-[400px] h-[400px] flex flex-col gap-4 justify-center items-center">
+        {timeLeft > 0 && (
+          <div
+            className={`radial-progress mt-16 ${
+              timeLeft < RED_TIME_THRESHOLD ? "text-error" : "text-secondary"
+            }`}
+            style={{
+              "--value": (timeLeft / DEFAULT_TIME) * 100,
+              "--size": "10rem",
+            }}
+            role="progressbar"
+          >
+            <span className="font-bold text-3xl text-white">{timeLeft}</span>
+            <span className="text-white">seconds</span>
+            <span className="text-white">left</span>
+          </div>
+        )}
+        {gameOver && (
+          <p className="text-error text-2xl self-center font-bold">
+            <span>{"Time's up!"}</span>
+            <span>⏰</span>
+          </p>
+        )}
+        <div
+          className={`flex flex-col ${
+            isAligned && !gameOver ? "" : "invisible"
+          }`}
+        >
+          <div
+            className={`radial-progress text-accent`}
+            style={{
+              "--value": 80,
+              "--size": "6rem",
+            }}
+            role="progressbar"
+          >
+            <span className="font-bold text-xl text-white">{80}%</span>
+            <span className="text-white text-sm">focus</span>
+          </div>
+        </div>
         <svg
           className="absolute"
           width="400"
@@ -168,13 +211,7 @@ const GyroFocus = ({ setActiveComponent }) => {
           />
         </svg>
       </div>
-
       <div className="flex flex-col items-start w-full">
-        {gameOver && (
-          <p className="text-error text-lg self-center font-bold">
-            {"Time's up! ⏰"}
-          </p>
-        )}
         {!isPlaying && (
           <>
             {!gameOver && (
@@ -213,30 +250,25 @@ const GyroFocus = ({ setActiveComponent }) => {
           </>
         )}
       </div>
-
-      <div className="mt-8 space-y-4 text-center">
-        {!gameOver ? (
-          <>
-            <p className="text-lg text-white">
-              {isAligned
-                ? `Concentration: ${Math.floor(concentrationLevel)}%`
-                : "Align the circles by tilting your head"}
-            </p>
-            <p className="text-lg text-white">Time Left: {timeLeft}s</p>
-          </>
-        ) : (
-          <></>
-        )}
-      </div>
-
+      {!gameOver ? (
+        <div className="mt-8 mb-4 space-y-4 text-center">
+          <p className="text-white flex items-center gap-2">
+            <FontAwesomeIcon className="text-2xl" icon={faArrowsRotate} />
+            {"  "}
+            {isAligned ? "" : "Align the circles by tilting your head"}
+          </p>
+        </div>
+      ) : (
+        <></>
+      )}
       <div className="w-full flex flex-col font-bold text-lg gap-2">
         <div className="w-full flex items-start justify-start gap-2 bg-secondary text-secondary-content px-4 py-1 rounded-md">
-          <span>Concentration check passed.</span>
+          <span>Focus check passed</span>
           <div className="flex-grow"></div>
           <span>{score}</span>
         </div>
         <div className="w-full flex items-start justify-start gap-2 bg-secondary text-secondary-content px-4 py-1 rounded-md">
-          <span>Most concentration check passed.</span>
+          <span>Most focus check passed</span>
           <div className="flex-grow"></div>
           <span>{highScore}</span>
         </div>
