@@ -76,12 +76,14 @@ const GyroFocus = ({ setActiveComponent }) => {
     }, [timeLeft, gameOver]);
 
     tilt.useTilt((newPitch) => {
-        setPitchValue(newPitch);
-        const newPosition = pitchToPosition(newPitch);
-        setPlayerPosition(newPosition);
+        if (!gameOver) {
+            setPitchValue(newPitch);
+            const newPosition = pitchToPosition(newPitch);
+            setPlayerPosition(newPosition);
 
-        const isNowAligned = Math.abs(newPosition - targetPosition) < ALIGNMENT_THRESHOLD;
-        setIsAligned(isNowAligned);
+            const isNowAligned = Math.abs(newPosition - targetPosition) < ALIGNMENT_THRESHOLD;
+            setIsAligned(isNowAligned);
+        }
     });
 
     // Restart or go back to menu using nods
