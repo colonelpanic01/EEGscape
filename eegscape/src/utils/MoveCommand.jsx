@@ -5,8 +5,8 @@ const MoveCommand = () => {
   const [moveStatus, setMoveStatus] = useState("");
 
   // Hardcoded values
-  const worldAddress = "0x0525177c8afe8680d7ad1da30ca183e482cfcd6404c1e09d83fd3fa2994fd4b8"; // Replace with actual contract address
-  const moveSelector = "0x7a1c71029f2d0b38e3ac89b09931d08b6e48417e079c289ff19a8698d0cba33" // Replace with actual selector for the move system
+  const worldAddress = "0x0525177c8afe8680d7ad1da30ca183e482cfcd6404c1e09d83fd3fa2994fd4b8";
+  const moveSelector = "0x7a1c71029f2d0b38e3ac89b09931d08b6e48417e079c289ff19a8698d0cba33";
 
   // Create a Starknet provider to interact with the network
   const provider = new Provider({ baseUrl: "http://localhost:5050/" });
