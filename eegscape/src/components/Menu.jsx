@@ -41,12 +41,14 @@ const Menu = () => {
   ];
 
   const handleButtonClick = (buttonId) => {
-    if (buttonId === 1) {
-      setActiveComponent("memory");
-    } else if (buttonId === 2) {
-      setActiveComponent("towerstack");
-    } else if (buttonId === 3) {
-      setActiveComponent("gyrofocus");
+    if (activeComponent === "menu") {
+      if (buttonId === 1) {
+        setActiveComponent("memory");
+      } else if (buttonId === 2) {
+        setActiveComponent("towerstack");
+      } else if (buttonId === 3) {
+        setActiveComponent("gyrofocus");
+      }
     }
   };
 
