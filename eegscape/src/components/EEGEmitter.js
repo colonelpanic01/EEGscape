@@ -4,7 +4,7 @@ import dispatchEeg from "../lib/dispatchEeg";
 
 function EEGEmitter() {
   // Get yawDegrees, pitchDegrees, and defaultPosition from EEGContext
-  const { yawDegrees, pitchDegrees, defaultPosition } = useEEG();
+  const { yawDegrees, pitchDegrees, defaultPosition, isConcentrate } = useEEG();
 
   // State to track the current dispatched action (only one at a time)
   const [dispatchState, setDispatchState] = useState(null);
@@ -28,6 +28,9 @@ function EEGEmitter() {
 
     // Avoid dispatching multiple actions simultaneously
     if (dispatchState) return; // Prevent if an action is already in progress
+
+    if(isConcentrate) dispatchEeg.concentration.focus();
+    if(!isConcentrate) dispatchEeg.concentration.relax();
 
     // Handle pitch-based nods
     if (pitchOffset <= -30) {
