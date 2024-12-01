@@ -6,7 +6,6 @@ import { EEGProvider } from "./context/EEGContext";
 import { useEffect } from "react";
 import MockEegEmitter from "./components/MockEegEmitter";
 import EegInputDisplay from "./components/EegInputDisplay";
-import TowerStack from "./pages/TowerStack";
 import EEGEmitter from "./components/EEGEmitter";
 import Metrics from "./components/Metrics";
 
@@ -22,7 +21,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/inputs" element={<Inputs />} />
-            <Route path="/tower-stack" element={<TowerStack />} />
           </Routes>
         </BrowserRouter>
         {/* <EegInputDisplay /> */}

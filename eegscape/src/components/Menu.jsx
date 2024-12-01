@@ -1,8 +1,8 @@
 import { useState } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
 import Memory from "./Memory";
+import TowerStack from "./TowerStack";
 import GyroFocus from "./GyroFocus";
-import Metrics from "./Metrics";
 
 const Menu = () => {
   const [activeComponent, setActiveComponent] = useState("menu");
@@ -11,7 +11,7 @@ const Menu = () => {
 
   const BUTTONS = [
     { id: 1, color: "red", label: "Memory Game" },
-    { id: 2, color: "blue", label: "Coming soon" },
+    { id: 2, color: "blue", label: "Tower Stack" },
     { id: 3, color: "green", label: "GyroFocus" },
   ];
 
@@ -19,7 +19,7 @@ const Menu = () => {
     if (buttonId === 1) {
       setActiveComponent("memory");
     } else if (buttonId === 2) {
-      console.log(`Component ${buttonId} selected - not yet implemented`);
+      setActiveComponent("towerstack");
     } else if (buttonId === 3) {
       setActiveComponent("gyrofocus");
     }
@@ -27,11 +27,15 @@ const Menu = () => {
 
   // Handle nods for navigation and selection
   nod.useNodLeft(() => {
-    setCount((prev) => (prev > 1 ? prev - 1 : prev));
+    if (activeComponent === "menu") {
+      setCount((prev) => (prev > 1 ? prev - 1 : prev));
+    }
   });
 
   nod.useNodRight(() => {
-    setCount((prev) => (prev < 3 ? prev + 1 : prev));
+    if (activeComponent === "menu") {
+      setCount((prev) => (prev < 3 ? prev + 1 : prev));
+    }
   });
 
   nod.useNodBottom(() => {
@@ -41,8 +45,11 @@ const Menu = () => {
   if (activeComponent === "memory") {
     return <Memory setActiveComponent={setActiveComponent} />;
   }
-  if (activeComponent === "gyrofocus") {
+  else if (activeComponent === "gyrofocus") {
     return <GyroFocus setActiveComponent={setActiveComponent} />;
+  }
+  else if (activeComponent === "towerstack") {
+    return <TowerStack setActiveComponent={setActiveComponent} />;
   }
 
   return (
