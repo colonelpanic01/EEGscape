@@ -269,7 +269,7 @@ const Memory = ({ setActiveComponent }) => {
           <div className="flex-grow"></div>
           <span>{score}</span>
         </div>
-        <div className="w-full flex items-start justify-start gap-2 bg-primary px-4 py-1 rounded-md text-primary-content">
+        <div className="w-full flex items-start justify-start gap-2 bg-primary text-primary-content px-4 py-1 rounded-md">
           <span>Length of your longest sequence</span>
           <div className="flex-grow"></div>
           <span>{highScore}</span>
