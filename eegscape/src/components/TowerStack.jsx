@@ -220,7 +220,7 @@ const TowerStack = ({ setActiveComponent }) => {
 
   return (
     <div
-      className="w-full h-full flex flex-col justify-center items-end"
+      className="w-full h-full flex flex-col justify-center items-end outline-none focus:outline-none"
       onKeyDown={(e) => e.key === " " && handleBlockDrop()}
       tabIndex={0}
     >
@@ -284,7 +284,7 @@ const TowerStack = ({ setActiveComponent }) => {
                   }}
                 >
                   {index === blocks.length - 1 && <span>{stackHeight}</span>}
-                  {gameOver && (
+                  {gameOver && index === blocks.length - 1 && (
                     <p className="text-error font-bold text-lg absolute bottom-full">
                       You missed the tower entirely 😔
                     </p>
