@@ -4,7 +4,7 @@ import HeadMovementVisualization from "./HeadMovementVisualization";
 
 const Metrics = () => {
   // State to track visibility of internal components
-  const [showComponents, setShowComponents] = useState(true);
+  const [showComponents, setShowComponents] = useState(false);
 
   useEffect(() => {
     // Event listener for the 'm' key press to toggle visibility
