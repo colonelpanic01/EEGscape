@@ -45,7 +45,7 @@ function EEGEmitter() {
       console.log("Blink DISPATCHED");
       dispatchEeg.blink();
       setAllowBlink(false); // Disable blinking temporarily
-      setTimeout(() => setAllowBlink(true), 500); // Re-enable blinking after 500ms
+      setTimeout(() => setAllowBlink(true), 1500); // Re-enable blinking after 500ms
     }
 
     // Handle pitch-based nods
