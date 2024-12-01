@@ -22,7 +22,17 @@ export const EEGProvider = ({ children }) => {
   });
   const [yawDegrees, setYawDegrees] = useState(0);
   const [pitchDegrees, setPitchDegrees] = useState(0);
-  const [defaultPosition, setDefaultPosition] = useState({ yaw: 0, pitch: 0 });
+  const [defaultPosition, setDefaultPosition] = useState({ yaw: yawDegrees, pitch: pitchDegrees });
+  const [chartData, setChartData] = useState({
+    labels: [], // for time points
+    datasets: [
+      { label: "Delta", borderColor: "#FF6384", data: [], fill: false },
+      { label: "Theta", borderColor: "#36A2EB", data: [], fill: false },
+      { label: "Alpha", borderColor: "#FFCE56", data: [], fill: false },
+      { label: "Beta", borderColor: "#4BC0C0", data: [], fill: false },
+      { label: "Gamma", borderColor: "#9966FF", data: [], fill: false },
+    ],
+  });
 
   const museClientRef = useRef(null);
 
@@ -56,6 +66,7 @@ export const EEGProvider = ({ children }) => {
           powerByBand()
         )
         .subscribe((data) => {
+          const currentTime = new Date().toLocaleTimeString();
           const bandData = [
             data.delta[0], // example for channel 0, you can change the logic for selecting channels
             data.theta[0],
@@ -63,6 +74,20 @@ export const EEGProvider = ({ children }) => {
             data.beta[0],
             data.gamma[0],
           ];
+
+          // update the chart data
+          setChartData((prevData) => {
+            const newLabels = [...prevData.labels, currentTime];
+            if (newLabels.length > 50) newLabels.shift();
+
+            const newDatasets = prevData.datasets.map((dataset, index) => {
+              const newData = [...dataset.data, bandData[index]];
+              if (newData.length > 50) newData.shift();
+              return { ...dataset, data: newData };
+            });
+
+            return { labels: newLabels, datasets: newDatasets };
+          });
 
           calculateMetrics(bandData);
         });
@@ -116,6 +141,7 @@ export const EEGProvider = ({ children }) => {
     connectToMuse,
     configureDefaultPosition,
     defaultPosition,
+    chartData
   };
 
   return <EEGContext.Provider value={value}>{children}</EEGContext.Provider>;

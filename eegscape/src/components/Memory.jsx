@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import useReceiveEeg from "../hooks/useReceiveEeg";
+import { useNavigate } from "react-router";
+import useLocalStorage from "use-local-storage";
 
-const Memory = ({ setActiveComponent }) => {
+const Memory = () => {
   // Game states
   const [sequence, setSequence] = useState([]);
   const [playerSequence, setPlayerSequence] = useState([]);
@@ -11,6 +13,11 @@ const Memory = ({ setActiveComponent }) => {
   const [gameOver, setGameOver] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
   const { nod } = useReceiveEeg();
+  const navigate = useNavigate();
+  const [highScore, setHighScore] = useLocalStorage(
+    "eegscape:memory-high-score",
+    0
+  );
 
   // Constants
   const BUTTONS = [
@@ -85,7 +92,13 @@ const Memory = ({ setActiveComponent }) => {
 
       // If player completed the sequence correctly
       if (newPlayerSequence.length === sequence.length) {
-        setScore(score + 1);
+        setScore((prev) => {
+          const result = prev + 1;
+          if (result > highScore) {
+            setHighScore(result);
+          }
+          return result;
+        });
         setPlayerSequence([]);
         setTimeout(() => {
           generateNextSequence();
@@ -97,7 +110,6 @@ const Memory = ({ setActiveComponent }) => {
       isPlaying,
       playerSequence,
       sequence,
-      score,
       generateNextSequence,
     ]
   );
@@ -119,9 +131,7 @@ const Memory = ({ setActiveComponent }) => {
     } else if (gameOver) {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
-        if (setActiveComponent) {
-          setActiveComponent("menu");
-        }
+        navigate("/");
       };
       handleMenuReturn();
     } else {
@@ -148,9 +158,7 @@ const Memory = ({ setActiveComponent }) => {
     } else if (gameOver) {
       // Check for left-right head shake pattern to return to menu
       const handleMenuReturn = () => {
-        if (setActiveComponent) {
-          setActiveComponent("menu");
-        }
+        navigate("/");
       };
       handleMenuReturn();
     } else {
@@ -167,9 +175,8 @@ const Memory = ({ setActiveComponent }) => {
   }, [sequence, isPlaying, showSequence]);
 
   return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-bold mb-8">Memory Game</h1>
-
+    <div className="flex flex-col items-center space-y-6 p-8 max-w-md mx-auto bg-gray-100 rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold">Memory Game</h1>
       <div className="mb-8">
         <p className="text-lg mb-4">Score: {score}</p>
 
@@ -184,7 +191,7 @@ const Memory = ({ setActiveComponent }) => {
 
             {gameOver && (
               <button
-                onClick={() => setActiveComponent("menu")}
+                onClick={() => navigate("/")}
                 className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
               >
                 Shake Your Head To Go Back
