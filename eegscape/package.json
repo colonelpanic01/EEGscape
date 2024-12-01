@@ -23,7 +23,8 @@
     "react-router": "^7.0.1",
     "rxjs": "^7.8.1",
     "three": "^0.171.0",
-    "use-local-storage": "^3.0.0"
+    "use-local-storage": "^3.0.0",
+    "use-sound": "^4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
